@@ -2,12 +2,12 @@ package pipeline
 
 import (
 	"errors"
-	"go-sdk/pkg/testhelpers"
 	"io"
 	"strings"
 	"testing"
 	"text/template"
 
+	"github.com/pasdam/go-test-utils/pkg/testutils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -109,7 +109,7 @@ func Test_pipeline_Process(t *testing.T) {
 
 			err := p.Process()
 
-			testhelpers.AssertEqualErrors(t, tt.wantErr, err)
+			testutils.AssertEqualErrors(t, tt.wantErr, err)
 		})
 	}
 }

@@ -7,8 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"go-sdk/pkg/testhelpers"
-
+	"github.com/pasdam/go-test-utils/pkg/testutils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -122,7 +121,7 @@ func Test_index_TakeFirst(t *testing.T) {
 
 			got, err := i.TakeFirst()
 
-			testhelpers.AssertEqualErrors(t, tt.wantErr, err)
+			testutils.AssertEqualErrors(t, tt.wantErr, err)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("index.TakeFirst() = %v, want %v", got, tt.want)
 			}

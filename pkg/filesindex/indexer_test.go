@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"testing"
 
-	"go-sdk/pkg/testhelpers"
+	"github.com/pasdam/go-test-utils/pkg/testutils"
 )
 
 func TestIndexer_NextFile(t *testing.T) {
@@ -78,7 +78,7 @@ func TestIndexer_NextFile(t *testing.T) {
 				got, err = indexer.NextFile()
 			}
 
-			testhelpers.AssertEqualErrors(t, tt.wantErr, err)
+			testutils.AssertEqualErrors(t, tt.wantErr, err)
 		})
 	}
 }

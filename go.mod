@@ -4,7 +4,8 @@ go 1.20
 
 require (
 	github.com/pasdam/go-template-map-loader v0.0.0-20220330030900-d4c140e772e2
-	github.com/stretchr/testify v1.8.2
+	github.com/pasdam/go-test-utils v0.0.0-20230710135805-45ec4e440661
+	github.com/stretchr/testify v1.8.4
 	github.com/xeipuuv/gojsonschema v1.2.0
 	sigs.k8s.io/yaml v1.3.0
 )

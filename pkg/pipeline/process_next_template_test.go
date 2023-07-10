@@ -2,13 +2,13 @@ package pipeline
 
 import (
 	"errors"
-	"go-sdk/pkg/testhelpers"
 	"io"
 	"strings"
 	"testing"
 	"text/template"
 
 	"github.com/pasdam/go-io-utilx/pkg/ioutilx"
+	"github.com/pasdam/go-test-utils/pkg/testutils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -75,7 +75,7 @@ func Test_processNextTemplate(t *testing.T) {
 			} else {
 				assert.Nil(t, got)
 			}
-			testhelpers.AssertEqualErrors(t, tt.wantErr, err)
+			testutils.AssertEqualErrors(t, tt.wantErr, err)
 		})
 	}
 }
