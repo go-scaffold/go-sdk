@@ -7,6 +7,7 @@ go 1.20
 require (
 	github.com/pasdam/go-template-map-loader v0.0.0-20220330030900-d4c140e772e2
 	github.com/pasdam/go-test-utils v0.0.0-20230710135805-45ec4e440661
+	github.com/pasdam/go-utils v0.0.0-20230712123701-d4916bc6a231
 	github.com/stretchr/testify v1.8.4
 )
 
