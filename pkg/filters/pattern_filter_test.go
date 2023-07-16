@@ -3,8 +3,7 @@ package filters_test
 import (
 	"testing"
 
-	"go-sdk/pkg/filters"
-
+	"github.com/go-scaffold/go-sdk/pkg/filters"
 	"github.com/stretchr/testify/assert"
 )
 

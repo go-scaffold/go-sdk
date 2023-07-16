@@ -1,9 +1,10 @@
 package pipeline
 
 import (
-	"go-sdk/pkg/templates"
 	"io/ioutil"
 	"text/template"
+
+	"github.com/go-scaffold/go-sdk/pkg/templates"
 )
 
 var _processTemplate = templates.ProcessTemplate
