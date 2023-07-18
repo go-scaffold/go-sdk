@@ -48,7 +48,7 @@ func Test_processNextTemplate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			templateProcessor := &templateProcessorMock{}
+			templateProvider := &templateProviderMock{}
 			data := make(map[string]string)
 			funcMap := make(template.FuncMap)
 
@@ -58,14 +58,14 @@ func Test_processNextTemplate(t *testing.T) {
 				templateReader := io.NopCloser(strings.NewReader(tt.mocks.templateContent))
 				nextTemplate.On("Reader").Return(templateReader)
 				nextTemplate.On("Path").Return(tt.wantPath)
-				templateProcessor.On("NextTemplate").Return(nextTemplate, nil)
+				templateProvider.On("NextTemplate").Return(nextTemplate, nil)
 				mockProcessTemplate(t, templateReader, data, funcMap, tt.wantContent, tt.mocks.renderTemplateErr)
 
 			} else {
-				templateProcessor.On("NextTemplate").Return(nil, tt.mocks.nextTemplateErr)
+				templateProvider.On("NextTemplate").Return(nil, tt.mocks.nextTemplateErr)
 			}
 
-			got, err := processNextTemplate(templateProcessor, data, funcMap)
+			got, err := processNextTemplate(templateProvider, data, funcMap)
 
 			if tt.wantErr == nil {
 				assert.NotNil(t, got)

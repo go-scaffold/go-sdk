@@ -9,8 +9,8 @@ import (
 
 var _processTemplate = templates.ProcessTemplate
 
-func processNextTemplate(templateProcessor TemplateProcessor, data interface{}, funcMap template.FuncMap) (*ProcessData, error) {
-	template, err := templateProcessor.NextTemplate()
+func processNextTemplate(templateProvider TemplateProvider, data interface{}, funcMap template.FuncMap) (*ProcessData, error) {
+	template, err := templateProvider.NextTemplate()
 	if err != nil {
 		return nil, err
 	}

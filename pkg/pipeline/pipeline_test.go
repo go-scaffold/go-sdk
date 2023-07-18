@@ -87,7 +87,7 @@ func Test_pipeline_Process(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			templateProcessor := &templateProcessorMock{}
+			templateProvider := &templateProviderMock{}
 			data := map[string]interface{}{}
 			functions := make(template.FuncMap)
 			postProcessor := &postProcessorMock{}
@@ -97,9 +97,9 @@ func Test_pipeline_Process(t *testing.T) {
 				postProcessingSteps: &postProcessingStep{
 					processor: postProcessor,
 				},
-				templateProcessor: templateProcessor,
+				templateProvider: templateProvider,
 			}
-			mockProcessNextTemplate(t, templateProcessor, data, functions, tt.mocks.nextTemplateRes)
+			mockProcessNextTemplate(t, templateProvider, data, functions, tt.mocks.nextTemplateRes)
 			assert.Equal(t, len(tt.mocks.nextTemplateRes), len(tt.mocks.postProcessingErrs))
 			for i := 0; i < len(tt.mocks.nextTemplateRes); i++ {
 				if tt.mocks.nextTemplateRes[i].err == nil {
@@ -119,10 +119,10 @@ type nextTemplateResult struct {
 	err  error
 }
 
-func mockProcessNextTemplate(t *testing.T, expectedProcessor TemplateProcessor, expectedData interface{}, expectedFuncMap template.FuncMap, nextTemplateRes []*nextTemplateResult) {
+func mockProcessNextTemplate(t *testing.T, expectedProcessor TemplateProvider, expectedData interface{}, expectedFuncMap template.FuncMap, nextTemplateRes []*nextTemplateResult) {
 	originalValue := _processNextTemplate
 	count := 0
-	_processNextTemplate = func(gotProcessor TemplateProcessor, gotData interface{}, gotFuncMap template.FuncMap) (*ProcessData, error) {
+	_processNextTemplate = func(gotProcessor TemplateProvider, gotData interface{}, gotFuncMap template.FuncMap) (*ProcessData, error) {
 		assert.Equal(t, expectedProcessor, gotProcessor)
 		assert.Equal(t, expectedData, gotData)
 		assert.Equal(t, expectedFuncMap, gotFuncMap)

@@ -4,11 +4,11 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type templateProcessorMock struct {
+type templateProviderMock struct {
 	mock.Mock
 }
 
-func (m *templateProcessorMock) NextTemplate() (Template, error) {
+func (m *templateProviderMock) NextTemplate() (Template, error) {
 	args := m.Called()
 	t := args.Get(0)
 	err := args.Error(1)

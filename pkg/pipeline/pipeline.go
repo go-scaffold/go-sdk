@@ -16,7 +16,7 @@ type pipeline struct {
 	data                map[string]interface{}
 	functions           template.FuncMap
 	postProcessingSteps *postProcessingStep
-	templateProcessor   TemplateProcessor
+	templateProvider    TemplateProvider
 }
 
 func (p *pipeline) Process() error {
@@ -31,7 +31,7 @@ func (p *pipeline) Process() error {
 }
 
 func (p *pipeline) processNext() error {
-	data, err := _processNextTemplate(p.templateProcessor, p.data, p.functions)
+	data, err := _processNextTemplate(p.templateProvider, p.data, p.functions)
 	if err != nil {
 		return err
 	}

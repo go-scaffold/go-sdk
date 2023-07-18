@@ -5,5 +5,5 @@ import (
 )
 
 type FunctionsBuilder interface {
-	WithFunctions(functions template.FuncMap) TemplateProcessorBuilder
+	WithFunctions(functions template.FuncMap) TemplateProviderBuilder
 }

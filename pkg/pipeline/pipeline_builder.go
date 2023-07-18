@@ -11,7 +11,7 @@ type builder struct {
 	MetadataBuilder
 	DataBuilder
 	FunctionsBuilder
-	TemplateProcessorBuilder
+	TemplateProviderBuilder
 	PostProcessingBuilder
 	lastStep *postProcessingStep
 
@@ -44,13 +44,13 @@ func (b *builder) WithMetadataWithPrefix(prefix string, data map[string]interfac
 	return b
 }
 
-func (b *builder) WithFunctions(functions template.FuncMap) TemplateProcessorBuilder {
+func (b *builder) WithFunctions(functions template.FuncMap) TemplateProviderBuilder {
 	b.p.functions = functions
 	return b
 }
 
-func (b *builder) WithTemplateProcessor(p TemplateProcessor) PostProcessingBuilder {
-	b.p.templateProcessor = p
+func (b *builder) WithTemplateProvider(p TemplateProvider) PostProcessingBuilder {
+	b.p.templateProvider = p
 	return b
 }
 
@@ -78,7 +78,7 @@ func (b *builder) Build() (Pipeline, error) {
 	if b.p.functions == nil || len(b.p.functions) == 0 {
 		return nil, errors.New("no functions specified in the context")
 	}
-	if b.p.templateProcessor == nil {
+	if b.p.templateProvider == nil {
 		return nil, errors.New("no template processor specified for the pipeline")
 	}
 	if b.p.postProcessingSteps == nil {

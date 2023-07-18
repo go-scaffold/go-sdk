@@ -11,13 +11,13 @@ func Test_builder_Build(t *testing.T) {
 	funcMap := make(template.FuncMap)
 	funcMap["test"] = Test_builder_Build
 	type fields struct {
-		dataPrefix        string
-		data              map[string]interface{}
-		metadataPrefix    string
-		metadata          map[string]interface{}
-		functions         template.FuncMap
-		templateProcessor TemplateProcessor
-		postProcessors    []PostProcessor
+		dataPrefix       string
+		data             map[string]interface{}
+		metadataPrefix   string
+		metadata         map[string]interface{}
+		functions        template.FuncMap
+		templateProvider TemplateProvider
+		postProcessors   []PostProcessor
 	}
 	tests := []struct {
 		name    string
@@ -27,10 +27,10 @@ func Test_builder_Build(t *testing.T) {
 		{
 			name: "Should return error if data and metadata are nill",
 			fields: fields{
-				data:              nil,
-				metadata:          nil,
-				functions:         funcMap,
-				templateProcessor: &templateProcessorMock{},
+				data:             nil,
+				metadata:         nil,
+				functions:        funcMap,
+				templateProvider: &templateProviderMock{},
 				postProcessors: []PostProcessor{
 					&postProcessorMock{},
 				},
@@ -46,8 +46,8 @@ func Test_builder_Build(t *testing.T) {
 				metadata: map[string]interface{}{
 					"km2": "vm2",
 				},
-				functions:         nil,
-				templateProcessor: &templateProcessorMock{},
+				functions:        nil,
+				templateProvider: &templateProviderMock{},
 				postProcessors: []PostProcessor{
 					&postProcessorMock{},
 				},
@@ -63,8 +63,8 @@ func Test_builder_Build(t *testing.T) {
 				metadata: map[string]interface{}{
 					"km2": "vm2",
 				},
-				functions:         make(template.FuncMap),
-				templateProcessor: &templateProcessorMock{},
+				functions:        make(template.FuncMap),
+				templateProvider: &templateProviderMock{},
 				postProcessors: []PostProcessor{
 					&postProcessorMock{},
 				},
@@ -80,8 +80,8 @@ func Test_builder_Build(t *testing.T) {
 				metadata: map[string]interface{}{
 					"km2": "vm2",
 				},
-				functions:         funcMap,
-				templateProcessor: nil,
+				functions:        funcMap,
+				templateProvider: nil,
 				postProcessors: []PostProcessor{
 					&postProcessorMock{},
 				},
@@ -97,9 +97,9 @@ func Test_builder_Build(t *testing.T) {
 				metadata: map[string]interface{}{
 					"km2": "vm2",
 				},
-				functions:         funcMap,
-				templateProcessor: &templateProcessorMock{},
-				postProcessors:    nil,
+				functions:        funcMap,
+				templateProvider: &templateProviderMock{},
+				postProcessors:   nil,
 			},
 			wantErr: "no post processor specified for the pipeline",
 		},
@@ -114,8 +114,8 @@ func Test_builder_Build(t *testing.T) {
 					"km1": "vm1",
 					"km2": "vm2",
 				},
-				functions:         funcMap,
-				templateProcessor: &templateProcessorMock{},
+				functions:        funcMap,
+				templateProvider: &templateProviderMock{},
 				postProcessors: []PostProcessor{
 					&postProcessorMock{},
 				},
@@ -134,8 +134,8 @@ func Test_builder_Build(t *testing.T) {
 					"km1": "vm1",
 					"km2": "vm2",
 				},
-				functions:         funcMap,
-				templateProcessor: &templateProcessorMock{},
+				functions:        funcMap,
+				templateProvider: &templateProviderMock{},
 				postProcessors: []PostProcessor{
 					&postProcessorMock{},
 				},
@@ -152,8 +152,8 @@ func Test_builder_Build(t *testing.T) {
 					"km3": "vm3",
 					"km4": "vm4",
 				},
-				functions:         funcMap,
-				templateProcessor: &templateProcessorMock{},
+				functions:        funcMap,
+				templateProvider: &templateProviderMock{},
 				postProcessors: []PostProcessor{
 					&postProcessorMock{},
 					&postProcessorMock{},
@@ -179,7 +179,7 @@ func Test_builder_Build(t *testing.T) {
 
 			builder := fBuilder.
 				WithFunctions(tt.fields.functions).
-				WithTemplateProcessor(tt.fields.templateProcessor)
+				WithTemplateProvider(tt.fields.templateProvider)
 
 			for _, processor := range tt.fields.postProcessors {
 				builder = builder.AddResultProcessor(processor)
@@ -204,7 +204,7 @@ func Test_builder_Build(t *testing.T) {
 					assert.Equal(t, tt.fields.metadata, gotP.data[tt.fields.metadataPrefix])
 				}
 				assert.Equal(t, tt.fields.functions, gotP.functions)
-				assert.Equal(t, tt.fields.templateProcessor, gotP.templateProcessor)
+				assert.Equal(t, tt.fields.templateProvider, gotP.templateProvider)
 
 				postProcessorStep := gotP.postProcessingSteps
 				assert.Equal(t, tt.fields.postProcessors[0], postProcessorStep.processor)
