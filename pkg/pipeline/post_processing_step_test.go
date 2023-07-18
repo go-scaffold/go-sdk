@@ -15,12 +15,12 @@ func Test_postProcessingStep_Process(t *testing.T) {
 		processor     PostProcessor
 	}
 	type args struct {
-		args *ProcessData
+		args *Template
 	}
 	type mocks struct {
-		processorOut     *ProcessData
+		processorOut     *Template
 		processorErr     error
-		nextProcessorOut *ProcessData
+		nextProcessorOut *Template
 		nextProcessorErr error
 	}
 	tests := []struct {
@@ -28,7 +28,7 @@ func Test_postProcessingStep_Process(t *testing.T) {
 		fields  fields
 		mocks   mocks
 		args    args
-		want    *ProcessData
+		want    *Template
 		wantErr string
 	}{
 		{
@@ -38,19 +38,19 @@ func Test_postProcessingStep_Process(t *testing.T) {
 				processor:     &postProcessorMock{},
 			},
 			mocks: mocks{
-				processorOut: &ProcessData{
+				processorOut: &Template{
 					Reader: &readCloserMock{},
 					Path:   "some-mock-path",
 				},
 				processorErr: nil,
 			},
 			args: args{
-				args: &ProcessData{
+				args: &Template{
 					Reader: &readCloserMock{},
 					Path:   "some-args-path",
 				},
 			},
-			want: &ProcessData{
+			want: &Template{
 				Reader: &readCloserMock{},
 				Path:   "some-mock-path",
 			},
@@ -67,7 +67,7 @@ func Test_postProcessingStep_Process(t *testing.T) {
 				processorErr: errors.New("some-processing-error"),
 			},
 			args: args{
-				args: &ProcessData{
+				args: &Template{
 					Reader: &readCloserMock{},
 					Path:   "some-args-path",
 				},
@@ -82,24 +82,24 @@ func Test_postProcessingStep_Process(t *testing.T) {
 				processor:     &postProcessorMock{},
 			},
 			mocks: mocks{
-				processorOut: &ProcessData{
+				processorOut: &Template{
 					Reader: &readCloserMock{},
 					Path:   "some-processor-path",
 				},
 				processorErr: nil,
-				nextProcessorOut: &ProcessData{
+				nextProcessorOut: &Template{
 					Reader: &readCloserMock{},
 					Path:   "some-next-processor-path",
 				},
 				nextProcessorErr: nil,
 			},
 			args: args{
-				args: &ProcessData{
+				args: &Template{
 					Reader: &readCloserMock{},
 					Path:   "some-args-path",
 				},
 			},
-			want: &ProcessData{
+			want: &Template{
 				Reader: &readCloserMock{},
 				Path:   "some-next-processor-path",
 			},
@@ -112,7 +112,7 @@ func Test_postProcessingStep_Process(t *testing.T) {
 				processor:     &postProcessorMock{},
 			},
 			mocks: mocks{
-				processorOut: &ProcessData{
+				processorOut: &Template{
 					Reader: &readCloserMock{},
 					Path:   "some-processor-path",
 				},
@@ -121,12 +121,12 @@ func Test_postProcessingStep_Process(t *testing.T) {
 				nextProcessorErr: errors.New("some-next-processor-error"),
 			},
 			args: args{
-				args: &ProcessData{
+				args: &Template{
 					Reader: &readCloserMock{},
 					Path:   "some-args-path",
 				},
 			},
-			want: &ProcessData{
+			want: &Template{
 				Reader: &readCloserMock{},
 				Path:   "some-next-processor-path",
 			},

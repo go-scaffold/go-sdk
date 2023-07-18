@@ -7,7 +7,7 @@ type postProcessingStep struct {
 	processor PostProcessor
 }
 
-func (p *postProcessingStep) Process(args *ProcessData) (*ProcessData, error) {
+func (p *postProcessingStep) Process(args *Template) (*Template, error) {
 	out, err := p.processor.Process(args)
 	defer args.Reader.Close()
 	if err != nil {

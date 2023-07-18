@@ -31,13 +31,13 @@ func Test_pipeline_Process(t *testing.T) {
 			mocks: mocks{
 				nextTemplateRes: []*nextTemplateResult{
 					{
-						data: &ProcessData{
+						data: &Template{
 							Reader: io.NopCloser(strings.NewReader("")),
 						},
 						err: nil,
 					},
 					{
-						data: &ProcessData{
+						data: &Template{
 							Reader: io.NopCloser(strings.NewReader("")),
 						},
 						err: nil,
@@ -60,13 +60,13 @@ func Test_pipeline_Process(t *testing.T) {
 			mocks: mocks{
 				nextTemplateRes: []*nextTemplateResult{
 					{
-						data: &ProcessData{
+						data: &Template{
 							Reader: io.NopCloser(strings.NewReader("")),
 						},
 						err: nil,
 					},
 					{
-						data: &ProcessData{
+						data: &Template{
 							Reader: io.NopCloser(strings.NewReader("")),
 						},
 						err: nil,
@@ -115,14 +115,14 @@ func Test_pipeline_Process(t *testing.T) {
 }
 
 type nextTemplateResult struct {
-	data *ProcessData
+	data *Template
 	err  error
 }
 
 func mockProcessNextTemplate(t *testing.T, expectedProcessor TemplateProvider, expectedData interface{}, expectedFuncMap template.FuncMap, nextTemplateRes []*nextTemplateResult) {
 	originalValue := _processNextTemplate
 	count := 0
-	_processNextTemplate = func(gotProcessor TemplateProvider, gotData interface{}, gotFuncMap template.FuncMap) (*ProcessData, error) {
+	_processNextTemplate = func(gotProcessor TemplateProvider, gotData interface{}, gotFuncMap template.FuncMap) (*Template, error) {
 		assert.Equal(t, expectedProcessor, gotProcessor)
 		assert.Equal(t, expectedData, gotData)
 		assert.Equal(t, expectedFuncMap, gotFuncMap)

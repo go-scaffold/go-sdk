@@ -9,13 +9,13 @@ import (
 
 var _processTemplate = templates.ProcessTemplate
 
-func processNextTemplate(templateProvider TemplateProvider, data interface{}, funcMap template.FuncMap) (*ProcessData, error) {
+func processNextTemplate(templateProvider TemplateProvider, data interface{}, funcMap template.FuncMap) (*Template, error) {
 	template, err := templateProvider.NextTemplate()
 	if err != nil {
 		return nil, err
 	}
 
-	templateReader := template.Reader()
+	templateReader := template.Reader
 	defer templateReader.Close()
 
 	resultReader, err := _processTemplate(templateReader, data, funcMap)
@@ -23,8 +23,8 @@ func processNextTemplate(templateProvider TemplateProvider, data interface{}, fu
 		return nil, err
 	}
 
-	return &ProcessData{
-		Path:   template.Path(),
+	return &Template{
+		Path:   template.Path,
 		Reader: ioutil.NopCloser(resultReader),
 	}, nil
 }

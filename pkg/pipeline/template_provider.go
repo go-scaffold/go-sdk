@@ -1,5 +1,5 @@
 package pipeline
 
 type TemplateProvider interface {
-	NextTemplate() (Template, error)
+	NextTemplate() (*Template, error)
 }
