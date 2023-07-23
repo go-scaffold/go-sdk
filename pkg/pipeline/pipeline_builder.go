@@ -12,7 +12,7 @@ type builder struct {
 	DataBuilder
 	FunctionsBuilder
 	TemplateProviderBuilder
-	PostProcessingBuilder
+	CollectorBuilder
 
 	p *pipeline
 }
@@ -48,13 +48,13 @@ func (b *builder) WithFunctions(functions template.FuncMap) TemplateProviderBuil
 	return b
 }
 
-func (b *builder) WithTemplateProvider(p TemplateProvider) PostProcessingBuilder {
+func (b *builder) WithTemplateProvider(p TemplateProvider) CollectorBuilder {
 	b.p.templateProvider = p
 	return b
 }
 
-func (b *builder) WithResultProcessor(p PostProcessor) PostProcessingBuilder {
-	b.p.postProcessor = p
+func (b *builder) WithCollector(p Collector) CollectorBuilder {
+	b.p.collector = p
 	return b
 }
 
@@ -72,8 +72,8 @@ func (b *builder) Build() (Pipeline, error) {
 	if b.p.templateProvider == nil {
 		return nil, errors.New("no template processor specified for the pipeline")
 	}
-	if b.p.postProcessor == nil {
-		return nil, errors.New("no post processor specified for the pipeline")
+	if b.p.collector == nil {
+		return nil, errors.New("no collector specified for the pipeline")
 	}
 
 	return b.p, nil

@@ -1,6 +1,6 @@
 package pipeline
 
-type PostProcessingBuilder interface {
-	WithResultProcessor(PostProcessor) PostProcessingBuilder
+type CollectorBuilder interface {
+	WithCollector(Collector) CollectorBuilder
 	Build() (Pipeline, error)
 }

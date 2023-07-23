@@ -17,7 +17,7 @@ func Test_builder_Build(t *testing.T) {
 		metadata         map[string]interface{}
 		functions        template.FuncMap
 		templateProvider TemplateProvider
-		postProcessor    PostProcessor
+		collector        Collector
 	}
 	tests := []struct {
 		name    string
@@ -31,7 +31,7 @@ func Test_builder_Build(t *testing.T) {
 				metadata:         nil,
 				functions:        funcMap,
 				templateProvider: &templateProviderMock{},
-				postProcessor:    &postProcessorMock{},
+				collector:        &collectorMock{},
 			},
 			wantErr: "no data specified in the context",
 		},
@@ -46,7 +46,7 @@ func Test_builder_Build(t *testing.T) {
 				},
 				functions:        nil,
 				templateProvider: &templateProviderMock{},
-				postProcessor:    &postProcessorMock{},
+				collector:        &collectorMock{},
 			},
 			wantErr: "no functions specified in the context",
 		},
@@ -61,7 +61,7 @@ func Test_builder_Build(t *testing.T) {
 				},
 				functions:        make(template.FuncMap),
 				templateProvider: &templateProviderMock{},
-				postProcessor:    &postProcessorMock{},
+				collector:        &collectorMock{},
 			},
 			wantErr: "no functions specified in the context",
 		},
@@ -76,12 +76,12 @@ func Test_builder_Build(t *testing.T) {
 				},
 				functions:        funcMap,
 				templateProvider: nil,
-				postProcessor:    &postProcessorMock{},
+				collector:        &collectorMock{},
 			},
 			wantErr: "no template processor specified for the pipeline",
 		},
 		{
-			name: "Should return error if there are no post processors",
+			name: "Should return error if there is no collector",
 			fields: fields{
 				data: map[string]interface{}{
 					"kd1": "vd1",
@@ -91,12 +91,12 @@ func Test_builder_Build(t *testing.T) {
 				},
 				functions:        funcMap,
 				templateProvider: &templateProviderMock{},
-				postProcessor:    nil,
+				collector:        nil,
 			},
-			wantErr: "no post processor specified for the pipeline",
+			wantErr: "no collector specified for the pipeline",
 		},
 		{
-			name: "Should create pipeline with one post processor",
+			name: "Should create pipeline with a collector",
 			fields: fields{
 				data: map[string]interface{}{
 					"kd1": "vd1",
@@ -108,11 +108,11 @@ func Test_builder_Build(t *testing.T) {
 				},
 				functions:        funcMap,
 				templateProvider: &templateProviderMock{},
-				postProcessor:    &postProcessorMock{},
+				collector:        &collectorMock{},
 			},
 		},
 		{
-			name: "Should create pipeline with one post processor and prefixes for data and metadata",
+			name: "Should create pipeline with a collector and prefixes for data and metadata",
 			fields: fields{
 				dataPrefix: "CustomData",
 				data: map[string]interface{}{
@@ -126,7 +126,7 @@ func Test_builder_Build(t *testing.T) {
 				},
 				functions:        funcMap,
 				templateProvider: &templateProviderMock{},
-				postProcessor:    &postProcessorMock{},
+				collector:        &collectorMock{},
 			},
 		},
 	}
@@ -149,7 +149,7 @@ func Test_builder_Build(t *testing.T) {
 			builder := fBuilder.
 				WithFunctions(tt.fields.functions).
 				WithTemplateProvider(tt.fields.templateProvider).
-				WithResultProcessor(tt.fields.postProcessor)
+				WithCollector(tt.fields.collector)
 
 			got, err := builder.Build()
 
@@ -172,8 +172,7 @@ func Test_builder_Build(t *testing.T) {
 				assert.Equal(t, tt.fields.functions, gotP.functions)
 				assert.Equal(t, tt.fields.templateProvider, gotP.templateProvider)
 
-				postProcessorStep := gotP.postProcessor
-				assert.Equal(t, tt.fields.postProcessor, postProcessorStep)
+				assert.Equal(t, tt.fields.collector, gotP.collector)
 
 			} else {
 				assert.Error(t, err)

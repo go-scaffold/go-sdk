@@ -4,11 +4,11 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type postProcessorMock struct {
+type collectorMock struct {
 	mock.Mock
 }
 
-func (m *postProcessorMock) Process(args *Template) error {
+func (m *collectorMock) Collect(args *Template) error {
 	res := m.Called(args)
 	err := res.Error(0)
 	return err

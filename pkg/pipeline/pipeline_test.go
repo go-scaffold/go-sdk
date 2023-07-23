@@ -13,8 +13,8 @@ import (
 
 func Test_pipeline_Process(t *testing.T) {
 	type mocks struct {
-		nextTemplateRes    []*nextTemplateResult
-		postProcessingErrs []error
+		nextTemplateRes []*nextTemplateResult
+		collectingErrs  []error
 	}
 	tests := []struct {
 		name    string
@@ -47,7 +47,7 @@ func Test_pipeline_Process(t *testing.T) {
 						err:  io.EOF,
 					},
 				},
-				postProcessingErrs: []error{
+				collectingErrs: []error{
 					nil,
 					nil,
 					nil,
@@ -76,7 +76,7 @@ func Test_pipeline_Process(t *testing.T) {
 						err:  errors.New("some-unexpected-error"),
 					},
 				},
-				postProcessingErrs: []error{
+				collectingErrs: []error{
 					nil,
 					nil,
 					nil,
@@ -90,18 +90,18 @@ func Test_pipeline_Process(t *testing.T) {
 			templateProvider := &templateProviderMock{}
 			data := map[string]interface{}{}
 			functions := make(template.FuncMap)
-			postProcessor := &postProcessorMock{}
+			collector := &collectorMock{}
 			p := &pipeline{
 				data:             data,
 				functions:        functions,
-				postProcessor:    postProcessor,
+				collector:        collector,
 				templateProvider: templateProvider,
 			}
 			mockProcessNextTemplate(t, templateProvider, data, functions, tt.mocks.nextTemplateRes)
-			assert.Equal(t, len(tt.mocks.nextTemplateRes), len(tt.mocks.postProcessingErrs))
+			assert.Equal(t, len(tt.mocks.nextTemplateRes), len(tt.mocks.collectingErrs))
 			for i := 0; i < len(tt.mocks.nextTemplateRes); i++ {
 				if tt.mocks.nextTemplateRes[i].err == nil {
-					postProcessor.On("Process", tt.mocks.nextTemplateRes[i].data).Return(tt.mocks.postProcessingErrs[i])
+					collector.On("Collect", tt.mocks.nextTemplateRes[i].data).Return(tt.mocks.collectingErrs[i])
 				}
 			}
 
