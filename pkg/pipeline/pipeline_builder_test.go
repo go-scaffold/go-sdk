@@ -17,7 +17,7 @@ func Test_builder_Build(t *testing.T) {
 		metadata         map[string]interface{}
 		functions        template.FuncMap
 		templateProvider TemplateProvider
-		postProcessors   []PostProcessor
+		postProcessor    PostProcessor
 	}
 	tests := []struct {
 		name    string
@@ -31,9 +31,7 @@ func Test_builder_Build(t *testing.T) {
 				metadata:         nil,
 				functions:        funcMap,
 				templateProvider: &templateProviderMock{},
-				postProcessors: []PostProcessor{
-					&postProcessorMock{},
-				},
+				postProcessor:    &postProcessorMock{},
 			},
 			wantErr: "no data specified in the context",
 		},
@@ -48,9 +46,7 @@ func Test_builder_Build(t *testing.T) {
 				},
 				functions:        nil,
 				templateProvider: &templateProviderMock{},
-				postProcessors: []PostProcessor{
-					&postProcessorMock{},
-				},
+				postProcessor:    &postProcessorMock{},
 			},
 			wantErr: "no functions specified in the context",
 		},
@@ -65,9 +61,7 @@ func Test_builder_Build(t *testing.T) {
 				},
 				functions:        make(template.FuncMap),
 				templateProvider: &templateProviderMock{},
-				postProcessors: []PostProcessor{
-					&postProcessorMock{},
-				},
+				postProcessor:    &postProcessorMock{},
 			},
 			wantErr: "no functions specified in the context",
 		},
@@ -82,9 +76,7 @@ func Test_builder_Build(t *testing.T) {
 				},
 				functions:        funcMap,
 				templateProvider: nil,
-				postProcessors: []PostProcessor{
-					&postProcessorMock{},
-				},
+				postProcessor:    &postProcessorMock{},
 			},
 			wantErr: "no template processor specified for the pipeline",
 		},
@@ -99,7 +91,7 @@ func Test_builder_Build(t *testing.T) {
 				},
 				functions:        funcMap,
 				templateProvider: &templateProviderMock{},
-				postProcessors:   nil,
+				postProcessor:    nil,
 			},
 			wantErr: "no post processor specified for the pipeline",
 		},
@@ -116,9 +108,7 @@ func Test_builder_Build(t *testing.T) {
 				},
 				functions:        funcMap,
 				templateProvider: &templateProviderMock{},
-				postProcessors: []PostProcessor{
-					&postProcessorMock{},
-				},
+				postProcessor:    &postProcessorMock{},
 			},
 		},
 		{
@@ -136,28 +126,7 @@ func Test_builder_Build(t *testing.T) {
 				},
 				functions:        funcMap,
 				templateProvider: &templateProviderMock{},
-				postProcessors: []PostProcessor{
-					&postProcessorMock{},
-				},
-			},
-		},
-		{
-			name: "Should create pipeline with 2 post processors",
-			fields: fields{
-				data: map[string]interface{}{
-					"kd3": "vd3",
-					"kd4": "vd4",
-				},
-				metadata: map[string]interface{}{
-					"km3": "vm3",
-					"km4": "vm4",
-				},
-				functions:        funcMap,
-				templateProvider: &templateProviderMock{},
-				postProcessors: []PostProcessor{
-					&postProcessorMock{},
-					&postProcessorMock{},
-				},
+				postProcessor:    &postProcessorMock{},
 			},
 		},
 	}
@@ -179,11 +148,8 @@ func Test_builder_Build(t *testing.T) {
 
 			builder := fBuilder.
 				WithFunctions(tt.fields.functions).
-				WithTemplateProvider(tt.fields.templateProvider)
-
-			for _, processor := range tt.fields.postProcessors {
-				builder = builder.AddResultProcessor(processor)
-			}
+				WithTemplateProvider(tt.fields.templateProvider).
+				WithResultProcessor(tt.fields.postProcessor)
 
 			got, err := builder.Build()
 
@@ -206,15 +172,8 @@ func Test_builder_Build(t *testing.T) {
 				assert.Equal(t, tt.fields.functions, gotP.functions)
 				assert.Equal(t, tt.fields.templateProvider, gotP.templateProvider)
 
-				postProcessorStep := gotP.postProcessingSteps
-				assert.Equal(t, tt.fields.postProcessors[0], postProcessorStep.processor)
-				for i := 1; i < len(tt.fields.postProcessors); i++ {
-					assert.NotNil(t, postProcessorStep.nextStep)
-
-					postProcessorStep = postProcessorStep.nextStep
-					assert.Equal(t, tt.fields.postProcessors[i], postProcessorStep.processor)
-				}
-				assert.Nil(t, postProcessorStep.nextStep)
+				postProcessorStep := gotP.postProcessor
+				assert.Equal(t, tt.fields.postProcessor, postProcessorStep)
 
 			} else {
 				assert.Error(t, err)

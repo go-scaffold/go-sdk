@@ -13,7 +13,6 @@ type builder struct {
 	FunctionsBuilder
 	TemplateProviderBuilder
 	PostProcessingBuilder
-	lastStep *postProcessingStep
 
 	p *pipeline
 }
@@ -54,16 +53,8 @@ func (b *builder) WithTemplateProvider(p TemplateProvider) PostProcessingBuilder
 	return b
 }
 
-func (b *builder) AddResultProcessor(p PostProcessor) PostProcessingBuilder {
-	step := &postProcessingStep{
-		processor: p,
-	}
-	if b.p.postProcessingSteps == nil {
-		b.p.postProcessingSteps = step
-	} else {
-		b.lastStep.nextStep = step
-	}
-	b.lastStep = step
+func (b *builder) WithResultProcessor(p PostProcessor) PostProcessingBuilder {
+	b.p.postProcessor = p
 	return b
 }
 
@@ -81,7 +72,7 @@ func (b *builder) Build() (Pipeline, error) {
 	if b.p.templateProvider == nil {
 		return nil, errors.New("no template processor specified for the pipeline")
 	}
-	if b.p.postProcessingSteps == nil {
+	if b.p.postProcessor == nil {
 		return nil, errors.New("no post processor specified for the pipeline")
 	}
 

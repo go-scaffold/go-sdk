@@ -1,6 +1,6 @@
 package pipeline
 
 type PostProcessingBuilder interface {
-	AddResultProcessor(PostProcessor) PostProcessingBuilder
+	WithResultProcessor(PostProcessor) PostProcessingBuilder
 	Build() (Pipeline, error)
 }

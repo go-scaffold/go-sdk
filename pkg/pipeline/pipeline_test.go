@@ -92,18 +92,16 @@ func Test_pipeline_Process(t *testing.T) {
 			functions := make(template.FuncMap)
 			postProcessor := &postProcessorMock{}
 			p := &pipeline{
-				data:      data,
-				functions: functions,
-				postProcessingSteps: &postProcessingStep{
-					processor: postProcessor,
-				},
+				data:             data,
+				functions:        functions,
+				postProcessor:    postProcessor,
 				templateProvider: templateProvider,
 			}
 			mockProcessNextTemplate(t, templateProvider, data, functions, tt.mocks.nextTemplateRes)
 			assert.Equal(t, len(tt.mocks.nextTemplateRes), len(tt.mocks.postProcessingErrs))
 			for i := 0; i < len(tt.mocks.nextTemplateRes); i++ {
 				if tt.mocks.nextTemplateRes[i].err == nil {
-					postProcessor.On("Process", tt.mocks.nextTemplateRes[i].data).Return(nil, tt.mocks.postProcessingErrs[i])
+					postProcessor.On("Process", tt.mocks.nextTemplateRes[i].data).Return(tt.mocks.postProcessingErrs[i])
 				}
 			}
 

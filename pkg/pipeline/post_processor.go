@@ -1,5 +1,5 @@
 package pipeline
 
 type PostProcessor interface {
-	Process(args *Template) (*Template, error)
+	Process(args *Template) error
 }

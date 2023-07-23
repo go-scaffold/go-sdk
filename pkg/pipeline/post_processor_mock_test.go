@@ -8,12 +8,8 @@ type postProcessorMock struct {
 	mock.Mock
 }
 
-func (m *postProcessorMock) Process(args *Template) (*Template, error) {
+func (m *postProcessorMock) Process(args *Template) error {
 	res := m.Called(args)
-	t := res.Get(0)
-	err := res.Error(1)
-	if t == nil {
-		return nil, err
-	}
-	return t.(*Template), err
+	err := res.Error(0)
+	return err
 }

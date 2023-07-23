@@ -13,10 +13,10 @@ type Pipeline interface {
 }
 
 type pipeline struct {
-	data                map[string]interface{}
-	functions           template.FuncMap
-	postProcessingSteps *postProcessingStep
-	templateProvider    TemplateProvider
+	data             map[string]interface{}
+	functions        template.FuncMap
+	postProcessor    PostProcessor
+	templateProvider TemplateProvider
 }
 
 func (p *pipeline) Process() error {
@@ -36,7 +36,7 @@ func (p *pipeline) processNext() error {
 		return err
 	}
 
-	_, err = p.postProcessingSteps.Process(data)
+	err = p.postProcessor.Process(data)
 
 	return err
 }

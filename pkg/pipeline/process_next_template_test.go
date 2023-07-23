@@ -52,12 +52,13 @@ func Test_processNextTemplate(t *testing.T) {
 			data := make(map[string]string)
 			funcMap := make(template.FuncMap)
 
-			var nextTemplate *templateMock
+			var nextTemplate *Template
 			if tt.mocks.nextTemplateErr == nil {
-				nextTemplate = &templateMock{}
 				templateReader := io.NopCloser(strings.NewReader(tt.mocks.templateContent))
-				nextTemplate.On("Reader").Return(templateReader)
-				nextTemplate.On("Path").Return(tt.wantPath)
+				nextTemplate = &Template{
+					Reader: templateReader,
+					Path:   tt.wantPath,
+				}
 				templateProvider.On("NextTemplate").Return(nextTemplate, nil)
 				mockProcessTemplate(t, templateReader, data, funcMap, tt.wantContent, tt.mocks.renderTemplateErr)
 
