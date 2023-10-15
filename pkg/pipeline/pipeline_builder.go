@@ -21,7 +21,10 @@ type pipelineBuilder struct {
 
 func NewPipelineBuilder() PipelineBuilder {
 	return &pipelineBuilder{
-		p: &pipeline{},
+		p: &pipeline{
+			prefixData:     "Values",
+			prefixMetadata: "Manifest",
+		},
 	}
 }
 

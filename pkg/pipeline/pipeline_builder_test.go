@@ -76,18 +76,29 @@ func Test_builder_Build(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			builder := NewPipelineBuilder()
 
-			got, gotErr := builder.
-				WithDataPrefix(tt.pipeline.prefixData).
-				WithMetadataPrefix(tt.pipeline.prefixMetadata).
+			builder = builder.
 				WithDataPreprocessor(tt.pipeline.dataPreprocessor).
 				WithFunctions(tt.pipeline.functions).
 				WithTemplateProvider(tt.pipeline.templateProvider).
-				WithCollector(tt.pipeline.collector).
-				Build()
+				WithCollector(tt.pipeline.collector)
+
+			expectedPipeline := tt.pipeline
+			if tt.pipeline.prefixMetadata != "" {
+				builder = builder.WithMetadataPrefix(tt.pipeline.prefixMetadata)
+			} else {
+				expectedPipeline.prefixMetadata = "Manifest"
+			}
+			if tt.pipeline.prefixData != "" {
+				builder = builder.WithDataPrefix(tt.pipeline.prefixData)
+			} else {
+				expectedPipeline.prefixData = "Values"
+			}
+
+			got, gotErr := builder.Build()
 
 			assertutils.AssertEqualErrors(t, tt.wantErr, gotErr)
 			if tt.wantErr == nil {
-				assert.Equal(t, &tt.pipeline, got)
+				assert.Equal(t, &expectedPipeline, got)
 			} else {
 				assert.Nil(t, got)
 			}
