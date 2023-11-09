@@ -1,7 +1,7 @@
 package pipeline
 
 import (
-	"io/ioutil"
+	"io"
 	"text/template"
 
 	"github.com/go-scaffold/go-sdk/pkg/templates"
@@ -25,6 +25,6 @@ func processNextTemplate(templateProvider TemplateProvider, data interface{}, fu
 
 	return &Template{
 		Path:   template.Path,
-		Reader: ioutil.NopCloser(resultReader),
+		Reader: io.NopCloser(resultReader),
 	}, nil
 }
