@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"io"
+	"log/slog"
 	"text/template"
 
 	"github.com/go-scaffold/go-sdk/pkg/templates"
@@ -14,6 +15,8 @@ func processNextTemplate(templateProvider TemplateProvider, data interface{}, fu
 	if err != nil {
 		return nil, err
 	}
+
+	slog.Info("Processing template file", slog.String("path", template.Path))
 
 	templateReader := template.Reader
 	defer templateReader.Close()
