@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log/slog"
 	"path/filepath"
 	"strings"
 
@@ -59,6 +60,10 @@ func (p *SplitterCollector) Collect(args *pipeline.Template) error {
 				Reader: io.NopCloser(buffer),
 				Path:   strings.ReplaceAll(strings.TrimPrefix(strings.TrimSpace(line), "@@ name="), "\"", ""), // TODO
 			}
+		} else if buffer == nil {
+			slog.Error("Invalid first line", slog.String("templatePath", args.Path), slog.String("line", line))
+			return fmt.Errorf("invalid first line")
+
 		} else {
 			buffer.WriteString(line)
 		}
