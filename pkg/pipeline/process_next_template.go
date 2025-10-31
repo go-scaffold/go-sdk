@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"text/template"
 
-	"github.com/go-scaffold/go-sdk/pkg/templates"
+	"github.com/go-scaffold/go-sdk/v2/pkg/templates"
 )
 
 var _processTemplate = templates.ProcessTemplate

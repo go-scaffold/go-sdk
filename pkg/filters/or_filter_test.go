@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/go-scaffold/go-sdk/pkg/filters"
+	"github.com/go-scaffold/go-sdk/v2/pkg/filters"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -1,7 +1,7 @@
 package collectors
 
 import (
-	"github.com/go-scaffold/go-sdk/pkg/pipeline"
+	"github.com/go-scaffold/go-sdk/v2/pkg/pipeline"
 )
 
 type baseCollector struct {

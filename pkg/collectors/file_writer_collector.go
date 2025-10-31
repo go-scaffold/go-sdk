@@ -5,7 +5,7 @@ import (
 	"io"
 	"path/filepath"
 
-	"github.com/go-scaffold/go-sdk/pkg/pipeline"
+	"github.com/go-scaffold/go-sdk/v2/pkg/pipeline"
 	"github.com/pasdam/go-io-utilx/pkg/ioutilx"
 )
 

@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/go-scaffold/go-sdk/pkg/filters"
-	"github.com/go-scaffold/go-sdk/pkg/pipeline"
+	"github.com/go-scaffold/go-sdk/v2/pkg/filters"
+	"github.com/go-scaffold/go-sdk/v2/pkg/pipeline"
 )
 
 var (

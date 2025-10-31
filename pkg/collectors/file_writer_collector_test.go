@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/go-scaffold/go-sdk/pkg/pipeline"
+	"github.com/go-scaffold/go-sdk/v2/pkg/pipeline"
 	"github.com/pasdam/go-utils/pkg/assertutils"
 	"github.com/pasdam/go-utils/pkg/filetestutils"
 	"github.com/stretchr/testify/assert"
