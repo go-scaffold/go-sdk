@@ -4,9 +4,11 @@ github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
 github.com/kr/text v0.2.0/go.mod h1:eLer722TekiGuMkidMxC/pM04lWEeraHUUmBw8l2grE=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e h1:fD57ERR4JtEqsWbfPhv4DMiApHyliiK5xCTNVSPiaAs=
+github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/pasdam/files-index v0.0.0-20251027145827-bf1f76a08090 h1:0r3RCUu/KV+BusDXRkzPJYTGfB+o0fdeQnO4BPHbeKs=
 github.com/pasdam/files-index v0.0.0-20251027145827-bf1f76a08090/go.mod h1:jYCSjXeW2NFmVYfPnqrjpFP7bdiProK+1u4IKiN42/w=
 github.com/pasdam/go-files-test v0.0.0-20200501091338-451ab9b14024 h1:hUfqYzQ1DWauTIxSkA2n9GfgLX4jvQcTyxHhGgEH3Ec=
+github.com/pasdam/go-files-test v0.0.0-20200501091338-451ab9b14024/go.mod h1:k5uAfQsYzk+bE0uXLvnHRB4uFjMzPvkveMZCRio/plk=
 github.com/pasdam/go-io-utilx v0.0.0-20251027152920-7448902636f4 h1:niGfEzuAMY6v5dwr9pLRM/DjJZ67CqAtALy1tfJqO/w=
 github.com/pasdam/go-io-utilx v0.0.0-20251027152920-7448902636f4/go.mod h1:qc30mFn2gPdmg2erbCULTBHiEz82pX6UGhGenoyMfiA=
 github.com/pasdam/go-template-map-loader v0.0.0-20251027152818-839d0eaea9e2 h1:W/QpKLMfrOBOETwoIKPpgkcFmkaE/a0Pea37b23pSCc=
@@ -25,5 +27,6 @@ github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f h1:BLraFXnmrev5lT+xlilqcH8XK9/i0At2xKjWk4p6zsU=
+gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
