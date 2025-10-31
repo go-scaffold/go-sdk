@@ -22,7 +22,7 @@ func TestLoadYamlManifest(t *testing.T) {
 			name: "Should load existing files with expected prefix",
 			args: args{filepath.Join("testdata", "file1.yml")},
 			want: map[string]interface{}{
-				defaultManifestPrefix: map[string]interface{}{
+				ManifestPrefix: map[string]interface{}{
 					"key1": "value1",
 				},
 			},

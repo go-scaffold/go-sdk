@@ -22,7 +22,7 @@ func TestLoadYamlValues(t *testing.T) {
 			name: "Should load existing files with expected prefix",
 			args: args{paths: []string{filepath.Join("testdata", "file1.yml"), filepath.Join("testdata", "file2.yml")}},
 			want: map[string]interface{}{
-				defaultValuesPrefix: map[string]interface{}{
+				ValuesPrefix: map[string]interface{}{
 					"key1": "value1",
 					"key2": "value2",
 				},
@@ -33,7 +33,7 @@ func TestLoadYamlValues(t *testing.T) {
 			name: "Should load existing files with expected prefix, and override values",
 			args: args{paths: []string{filepath.Join("testdata", "file1.yml"), filepath.Join("testdata", "file3.yml")}},
 			want: map[string]interface{}{
-				defaultValuesPrefix: map[string]interface{}{
+				ValuesPrefix: map[string]interface{}{
 					"key1": "value3",
 				},
 			},

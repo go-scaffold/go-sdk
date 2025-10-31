@@ -30,10 +30,10 @@ func TestLoadYamlManifestAndValues(t *testing.T) {
 				},
 			},
 			want: map[string]interface{}{
-				defaultManifestPrefix: map[string]interface{}{
+				ManifestPrefix: map[string]interface{}{
 					"key1": "value1",
 				},
-				defaultValuesPrefix: map[string]interface{}{
+				ValuesPrefix: map[string]interface{}{
 					"key2": "value2",
 					"key1": "value3",
 				},

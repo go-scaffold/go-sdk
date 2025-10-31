@@ -1,4 +1,4 @@
 package values
 
-const defaultManifestPrefix = "Manifest"
-const defaultValuesPrefix = "Values"
+const ManifestPrefix = "Manifest"
+const ValuesPrefix = "Values"
