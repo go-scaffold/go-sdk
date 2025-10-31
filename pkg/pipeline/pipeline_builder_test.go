@@ -64,8 +64,6 @@ func Test_builder_Build(t *testing.T) {
 		{
 			name: "Should create pipeline with a collector and prefixes for data and metadata",
 			pipeline: pipeline{
-				prefixData:       "CustomData",
-				prefixMetadata:   "CustomMetadata",
 				functions:        funcMap,
 				templateProvider: &templateProviderMock{},
 				collector:        &collectorMock{},
@@ -83,16 +81,6 @@ func Test_builder_Build(t *testing.T) {
 				WithCollector(tt.pipeline.collector)
 
 			expectedPipeline := tt.pipeline
-			if tt.pipeline.prefixMetadata != "" {
-				builder = builder.WithMetadataPrefix(tt.pipeline.prefixMetadata)
-			} else {
-				expectedPipeline.prefixMetadata = "Manifest"
-			}
-			if tt.pipeline.prefixData != "" {
-				builder = builder.WithDataPrefix(tt.pipeline.prefixData)
-			} else {
-				expectedPipeline.prefixData = "Values"
-			}
 
 			got, gotErr := builder.Build()
 

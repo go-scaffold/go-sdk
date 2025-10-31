@@ -14,8 +14,6 @@ import (
 
 func Test_pipeline_Process(t *testing.T) {
 	type fields struct {
-		prefixData           string
-		prefixMetadata       string
 		withDataPreprocessor bool
 	}
 	type mocks struct {
@@ -66,8 +64,6 @@ func Test_pipeline_Process(t *testing.T) {
 		{
 			name: "Should not return error if next template returns valid values and pipeline is using prefixes and a data preprocessor",
 			fields: fields{
-				prefixData:           "some-data-prefix",
-				prefixMetadata:       "some-metadata-prefix",
 				withDataPreprocessor: true,
 			},
 			mocks: mocks{
@@ -140,32 +136,27 @@ func Test_pipeline_Process(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			templateProvider := &templateProviderMock{}
-			data := map[string]interface{}{}
-			metadata := map[string]interface{}{}
-			expectedData := tm.MergeMaps(
-				tm.WithPrefix(tt.fields.prefixData, data),
-				tm.WithPrefix(tt.fields.prefixMetadata, metadata),
-			)
+			data := map[string]interface{}{
+				"Manifest": map[string]interface{}{},
+				"Values":   map[string]interface{}{},
+			}
 			functions := make(template.FuncMap)
 			collector := &collectorMock{}
 			p := &pipeline{
 				collector:        collector,
 				functions:        functions,
-				prefixData:       tt.fields.prefixData,
-				prefixMetadata:   tt.fields.prefixMetadata,
 				templateProvider: templateProvider,
 			}
+			expectedData := data
 			if tt.fields.withDataPreprocessor {
-				oldExpectedData := expectedData
-				expectedDataWithPrefix := tm.WithPrefix("some-preprocessor-prefix", expectedData)
+				expectedData = tm.WithPrefix("some-preprocessor-prefix", data)
 				p.dataPreprocessor = func(m map[string]interface{}) (map[string]interface{}, error) {
-					assert.Equal(t, oldExpectedData, m)
+					assert.Equal(t, data, m)
 					if tt.mocks.dataPreprocessorError != nil {
 						return nil, tt.mocks.dataPreprocessorError
 					}
-					return expectedDataWithPrefix, nil
+					return expectedData, nil
 				}
-				expectedData = expectedDataWithPrefix
 			}
 			mockProcessNextTemplate(t, templateProvider, expectedData, functions, tt.mocks.nextTemplateRes)
 			assert.Equal(t, len(tt.mocks.nextTemplateRes), len(tt.mocks.collectingErrs))
@@ -175,7 +166,7 @@ func Test_pipeline_Process(t *testing.T) {
 				}
 			}
 
-			err := p.Process(metadata, data)
+			err := p.Process(data)
 
 			testutils.AssertEqualErrors(t, tt.wantErr, err)
 		})

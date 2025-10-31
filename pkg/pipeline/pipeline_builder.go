@@ -8,10 +8,8 @@ import (
 type PipelineBuilder interface {
 	Build() (Pipeline, error)
 	WithCollector(p Collector) *pipelineBuilder
-	WithDataPrefix(prefix string) *pipelineBuilder
 	WithDataPreprocessor(fn DataPreprocessor) *pipelineBuilder
 	WithFunctions(functions template.FuncMap) *pipelineBuilder
-	WithMetadataPrefix(prefix string) *pipelineBuilder
 	WithTemplateProvider(p TemplateProvider) *pipelineBuilder
 }
 
@@ -21,15 +19,12 @@ type pipelineBuilder struct {
 
 func NewPipelineBuilder() PipelineBuilder {
 	return &pipelineBuilder{
-		p: &pipeline{
-			prefixData:     "Values",
-			prefixMetadata: "Manifest",
-		},
+		p: &pipeline{},
 	}
 }
 
 func (b *pipelineBuilder) Build() (Pipeline, error) {
-	if b.p.functions == nil || len(b.p.functions) == 0 {
+	if len(b.p.functions) == 0 {
 		return nil, errors.New("no functions specified in the context")
 	}
 	if b.p.templateProvider == nil {
@@ -47,11 +42,6 @@ func (b *pipelineBuilder) WithCollector(p Collector) *pipelineBuilder {
 	return b
 }
 
-func (b *pipelineBuilder) WithDataPrefix(prefix string) *pipelineBuilder {
-	b.p.prefixData = prefix
-	return b
-}
-
 func (b *pipelineBuilder) WithDataPreprocessor(fn DataPreprocessor) *pipelineBuilder {
 	b.p.dataPreprocessor = fn
 	return b
@@ -59,11 +49,6 @@ func (b *pipelineBuilder) WithDataPreprocessor(fn DataPreprocessor) *pipelineBui
 
 func (b *pipelineBuilder) WithFunctions(functions template.FuncMap) *pipelineBuilder {
 	b.p.functions = functions
-	return b
-}
-
-func (b *pipelineBuilder) WithMetadataPrefix(prefix string) *pipelineBuilder {
-	b.p.prefixMetadata = prefix
 	return b
 }
 

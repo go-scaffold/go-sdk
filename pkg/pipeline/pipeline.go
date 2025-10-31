@@ -4,35 +4,23 @@ import (
 	"errors"
 	"io"
 	"text/template"
-
-	"github.com/pasdam/go-template-map-loader/pkg/tm"
 )
 
 var _processNextTemplate = processNextTemplate
 
 type Pipeline interface {
-	Process(metadata, data map[string]interface{}) error
+	Process(processData map[string]interface{}) error
 }
 
 type pipeline struct {
-	prefixData       string
-	prefixMetadata   string
 	dataPreprocessor DataPreprocessor
 	functions        template.FuncMap
 	collector        Collector
 	templateProvider TemplateProvider
 }
 
-func (p *pipeline) Process(metadata, data map[string]interface{}) error {
+func (p *pipeline) Process(processData map[string]interface{}) error {
 	var err error
-
-	if p.prefixData != "" {
-		data = tm.WithPrefix(p.prefixData, data)
-	}
-	if p.prefixMetadata != "" {
-		metadata = tm.WithPrefix(p.prefixMetadata, metadata)
-	}
-	processData := tm.MergeMaps(metadata, data)
 
 	if p.dataPreprocessor != nil {
 		processData, err = p.dataPreprocessor(processData)
