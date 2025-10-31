@@ -2,7 +2,7 @@ module github.com/go-scaffold/go-sdk
 
 replace github.com/go-scaffold/go-sdk/pkg => ./pkg
 
-go 1.20
+go 1.23.0
 
 require (
 	github.com/pasdam/go-template-map-loader v0.0.0-20251027152818-839d0eaea9e2
