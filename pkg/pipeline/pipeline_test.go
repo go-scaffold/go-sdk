@@ -8,7 +8,7 @@ import (
 	"text/template"
 
 	"github.com/pasdam/go-template-map-loader/pkg/tm"
-	"github.com/pasdam/go-test-utils/pkg/testutils"
+	"github.com/pasdam/go-utils/pkg/assertutils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -168,7 +168,7 @@ func Test_pipeline_Process(t *testing.T) {
 
 			err := p.Process(data)
 
-			testutils.AssertEqualErrors(t, tt.wantErr, err)
+			assertutils.AssertEqualErrors(t, tt.wantErr, err)
 		})
 	}
 }

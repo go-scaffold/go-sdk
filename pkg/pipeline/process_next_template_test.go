@@ -8,7 +8,7 @@ import (
 	"text/template"
 
 	"github.com/pasdam/go-io-utilx/pkg/ioutilx"
-	"github.com/pasdam/go-test-utils/pkg/testutils"
+	"github.com/pasdam/go-utils/pkg/assertutils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -76,7 +76,7 @@ func Test_processNextTemplate(t *testing.T) {
 			} else {
 				assert.Nil(t, got)
 			}
-			testutils.AssertEqualErrors(t, tt.wantErr, err)
+			assertutils.AssertEqualErrors(t, tt.wantErr, err)
 		})
 	}
 }
