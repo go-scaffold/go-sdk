@@ -6,7 +6,7 @@ replace github.com/go-scaffold/go-sdk/v2/pkg => ./pkg
 
 require (
 	github.com/pasdam/go-template-map-loader v0.0.0-20251027152818-839d0eaea9e2
-	github.com/pasdam/go-utils v0.0.0-20230718144448-c56c396f6c77
+	github.com/pasdam/go-utils v0.1.0
 	github.com/stretchr/testify v1.11.1
 )
 

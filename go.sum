@@ -15,8 +15,8 @@ github.com/pasdam/go-template-map-loader v0.0.0-20251027152818-839d0eaea9e2 h1:W
 github.com/pasdam/go-template-map-loader v0.0.0-20251027152818-839d0eaea9e2/go.mod h1:S3oVz+KFHOaWKKK5IvgetRbHXFtQk6bnQj2zdWjruuI=
 github.com/pasdam/go-test-utils v0.0.0-20230710135805-45ec4e440661 h1:6Nr3eIGr64N/yyyzit4R5Cb5eskKL+XnoRPZ6iZX8hA=
 github.com/pasdam/go-test-utils v0.0.0-20230710135805-45ec4e440661/go.mod h1:W5pjXu28pPWmZ6LmG2lHyqPi7DL3WfwCTJDow4egxlo=
-github.com/pasdam/go-utils v0.0.0-20230718144448-c56c396f6c77 h1:yl5/8UpUzFvw+BaFISS9Gli1Y1uZUFuqFQOoNgU64iU=
-github.com/pasdam/go-utils v0.0.0-20230718144448-c56c396f6c77/go.mod h1:9oFKiWQoSQnXulhn8V4DiWi/FkYKW1yPVE0/oUObCZg=
+github.com/pasdam/go-utils v0.1.0 h1:1sPMBGfFKitnKgNyI8dSScMxP7DSTslbmm5eLDRuT1g=
+github.com/pasdam/go-utils v0.1.0/go.mod h1:kC6CXekT+mqCBzih0C2agjiOflAw+2NBlE2XxOLNKrU=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
