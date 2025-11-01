@@ -1,55 +1,47 @@
 package values
 
 import (
+	"errors"
 	"path/filepath"
 	"testing"
 
+	"github.com/pasdam/go-utils/pkg/assertutils"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGetYamlManifestPath(t *testing.T) {
-	// For the case where no manifest files exist, use a temp directory
-	tempDir := t.TempDir()
-
-	// Define test cases
 	testCases := []struct {
 		name    string
 		args    struct{ dir string }
 		want    string
-		wantErr bool
+		wantErr error
 	}{
 		{
 			name:    "Should return path for existing Manifest.yaml file (takes priority over .yml)",
 			args:    struct{ dir string }{dir: "testdata"},
 			want:    filepath.Join("testdata", "Manifest.yaml"), // Should return .yaml since it has priority
-			wantErr: false,
+			wantErr: nil,
 		},
 		{
-			name:    "Should return empty string when directory doesn't exist (not an error case)",
+			name:    "Should return error when directory doesn't exist",
 			args:    struct{ dir string }{dir: "/nonexistent/directory/path"},
 			want:    "",
-			wantErr: false, // No error - just no file found
+			wantErr: errors.New("neither .yaml nor .yml file found for Manifest in /nonexistent/directory/path"),
 		},
 		{
-			name:    "Should return empty string when neither Manifest.yaml nor Manifest.yml exist",
-			args:    struct{ dir string }{dir: tempDir},
+			name:    "Should return error when neither Manifest.yaml nor Manifest.yml exist",
+			args:    struct{ dir string }{dir: "."},
 			want:    "",
-			wantErr: false,
+			wantErr: errors.New("neither .yaml nor .yml file found for Manifest in ."),
 		},
 	}
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := GetYamlManifestPath(tt.args.dir)
-			if (err != nil) != tt.wantErr {
-				assert.Error(t, err)
-				assert.Equal(t, tt.wantErr, err != nil)
-			} else {
-				assert.NoError(t, err)
-			}
-			if got != tt.want {
-				t.Errorf("GetYamlManifestPath() = %v, want %v", got, tt.want)
-			}
+
+			assertutils.AssertEqualErrors(t, tt.wantErr, err)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

@@ -1,6 +1,7 @@
 package values
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -29,5 +30,5 @@ func GetYamlPath(dirPath, baseName string) (string, error) {
 	}
 
 	// Neither extension exists
-	return "", nil
+	return "", fmt.Errorf("neither .yaml nor .yml file found for %s in %s", baseName, dirPath)
 }
