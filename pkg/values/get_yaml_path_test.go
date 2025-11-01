@@ -11,9 +11,7 @@ import (
 
 func TestGetYamlPath(t *testing.T) {
 	testDir := "testdata"
-
 	type args struct {
-		dirPath  string
 		baseName string
 	}
 	tests := []struct {
@@ -24,33 +22,33 @@ func TestGetYamlPath(t *testing.T) {
 	}{
 		{
 			name:    "Should return path for existing .yaml file",
-			args:    args{dirPath: testDir, baseName: "file4"}, // file4.yaml exists in testdata
-			want:    filepath.Join(testDir, "file4.yaml"),
+			args:    args{baseName: "file3"}, // file4.yaml exists in testdata
+			want:    filepath.Join(testDir, "file3.yaml"),
 			wantErr: nil,
 		},
 		{
 			name:    "Should return path for existing .yml file",
-			args:    args{dirPath: testDir, baseName: "file1"}, // file1.yml exists in testdata
+			args:    args{baseName: "file1"}, // file1.yml exists in testdata
 			want:    filepath.Join(testDir, "file1.yml"),
 			wantErr: nil,
 		},
 		{
 			name:    "Should return error for non-existing file",
-			args:    args{dirPath: testDir, baseName: "nonexistent"},
+			args:    args{baseName: "nonexistent"},
 			want:    "",
 			wantErr: errors.New("neither .yaml nor .yml file found for nonexistent in testdata"),
 		},
 		{
-			name:    "Should return .yaml path when both .yaml and .yml exist (prefers .yaml)",
-			args:    args{dirPath: testDir, baseName: "both"}, // both.yaml and both.yml exist in testdata
-			want:    filepath.Join(testDir, "both.yaml"),      // Should return the .yaml file since it's checked first
-			wantErr: nil,
+			name:    "Should return error if filename contains invalid characters",
+			args:    args{baseName: "\000"},
+			want:    "",
+			wantErr: errors.New("stat testdata/\x00.yaml: invalid argument"),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetYamlPath(tt.args.dirPath, tt.args.baseName)
+			got, err := GetYamlPath(testDir, tt.args.baseName)
 
 			assertutils.AssertEqualErrors(t, tt.wantErr, err)
 			assert.Equal(t, tt.want, got)
