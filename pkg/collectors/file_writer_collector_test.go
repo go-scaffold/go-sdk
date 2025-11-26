@@ -1,13 +1,16 @@
 package collectors
 
 import (
+	"bytes"
 	"errors"
 	"io"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/go-scaffold/go-sdk/v2/pkg/pipeline"
+	"github.com/pasdam/go-io-utilx/pkg/ioutilx"
 	"github.com/pasdam/go-utils/pkg/assertutils"
 	"github.com/pasdam/go-utils/pkg/filetestutils"
 	"github.com/stretchr/testify/assert"
@@ -41,35 +44,83 @@ func TestNewFileWriterCollector(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := NewFileWriterCollector(tt.args.outDir, tt.args.nextCollector).(*fileWriterCollector)
 
-			assert.Equal(t, tt.args.outDir, got.outDir)
+			assert.Equal(t, tt.args.outDir, got.opts.OutDir)
 			assert.Equal(t, tt.args.nextCollector, got.next)
+			assert.Equal(t, false, got.opts.SkipUnchanged)
+		})
+	}
+}
+
+func TestNewFileWriterCollectorWithOpts(t *testing.T) {
+	type args struct {
+		opts          FileWriterCollectorOptions
+		nextCollector pipeline.Collector
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "Should create collector without next one",
+			args: args{
+				opts: FileWriterCollectorOptions{
+					OutDir: "some-out-dir-without-collector",
+				},
+			},
+		},
+		{
+			name: "Should create collector with next one",
+			args: args{
+				opts: FileWriterCollectorOptions{
+					OutDir: "some-out-dir-with-collector",
+				},
+				nextCollector: &fileWriterCollector{},
+			},
+		},
+		{
+			name: "Should create collector to skip unchanged files",
+			args: args{
+				opts: FileWriterCollectorOptions{
+					OutDir:        "some-out-dir-skip-unchanged",
+					SkipUnchanged: true,
+				},
+				nextCollector: &fileWriterCollector{},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := NewFileWriterCollectorWithOpts(tt.args.opts, tt.args.nextCollector).(*fileWriterCollector)
+
+			assert.Equal(t, tt.args.opts.OutDir, got.opts.OutDir)
+			assert.Equal(t, tt.args.nextCollector, got.next)
+			assert.Equal(t, tt.args.opts.SkipUnchanged, got.opts.SkipUnchanged)
 		})
 	}
 }
 
 func Test_fileWriterCollector_Collect(t *testing.T) {
-	type fields struct {
-		outDir string
-	}
 	type args struct {
 		path    string
 		content string
 	}
 	type want struct {
-		err  error
-		file bool
-		next bool
+		err       error
+		file      bool
+		next      bool
+		overwrite bool
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   want
+		name     string
+		opts     FileWriterCollectorOptions
+		mockFile bool
+		args     args
+		want     want
 	}{
 		{
 			name: "should return no error if file is wrote correctly and no next collector is specified",
-			fields: fields{
-				outDir: filetestutils.TempDir(t),
+			opts: FileWriterCollectorOptions{
+				OutDir: filetestutils.TempDir(t),
 			},
 			args: args{
 				path:    "some-correct-path",
@@ -82,9 +133,44 @@ func Test_fileWriterCollector_Collect(t *testing.T) {
 			},
 		},
 		{
+			name: "should overwrite file if SkipUnchanged is false",
+			opts: FileWriterCollectorOptions{
+				OutDir: filetestutils.TempDir(t),
+			},
+			args: args{
+				path:    "some-correct-path",
+				content: "some-correct-content",
+			},
+			mockFile: true,
+			want: want{
+				err:       nil,
+				file:      true,
+				next:      false,
+				overwrite: true,
+			},
+		},
+		{
+			name: "should overwrite file if SkipUnchanged is true",
+			opts: FileWriterCollectorOptions{
+				OutDir:        filetestutils.TempDir(t),
+				SkipUnchanged: true,
+			},
+			args: args{
+				path:    "some-correct-path",
+				content: "some-correct-content",
+			},
+			mockFile: true,
+			want: want{
+				err:       nil,
+				file:      true,
+				next:      false,
+				overwrite: false,
+			},
+		},
+		{
 			name: "should return no error if file is wrote correctly and next collector is invoked correctly",
-			fields: fields{
-				outDir: filetestutils.TempDir(t),
+			opts: FileWriterCollectorOptions{
+				OutDir: filetestutils.TempDir(t),
 			},
 			args: args{
 				path:    "some-correct-path",
@@ -98,8 +184,8 @@ func Test_fileWriterCollector_Collect(t *testing.T) {
 		},
 		{
 			name: "should propagate error if file is wrote correctly but next collector raises one",
-			fields: fields{
-				outDir: filetestutils.TempDir(t),
+			opts: FileWriterCollectorOptions{
+				OutDir: filetestutils.TempDir(t),
 			},
 			args: args{
 				path:    "some-correct-path",
@@ -113,8 +199,8 @@ func Test_fileWriterCollector_Collect(t *testing.T) {
 		},
 		{
 			name: "should return error if one is thrown while saving the output file",
-			fields: fields{
-				outDir: filepath.Join("testdata", "out", ".gitignore"),
+			opts: FileWriterCollectorOptions{
+				OutDir: filepath.Join("testdata", "out", ".gitignore"),
 			},
 			args: args{
 				path:    "some-not-existing-path",
@@ -132,12 +218,21 @@ func Test_fileWriterCollector_Collect(t *testing.T) {
 			if tt.want.next {
 				next = &mockCollector{}
 				next.(*mockCollector).On("Collect", mock.Anything).Return(tt.want.err)
+				next.(*mockCollector).On("OnPipelineCompleted").Return(nil) // Expect the new method to be called
 			}
 			p := &fileWriterCollector{
 				baseCollector: baseCollector{
 					next: next,
 				},
-				outDir: tt.fields.outDir,
+				opts: tt.opts,
+			}
+			beforeTimestamp := int64(0)
+			outPath := filepath.Join(tt.opts.OutDir, tt.args.path)
+			if tt.mockFile {
+				ioutilx.ReaderToFile(bytes.NewReader([]byte(tt.args.content)), outPath)
+				stat, err := os.Stat(outPath)
+				assert.NoError(t, err)
+				beforeTimestamp = stat.ModTime().UnixNano()
 			}
 
 			err := p.Collect(&pipeline.Template{
@@ -146,8 +241,19 @@ func Test_fileWriterCollector_Collect(t *testing.T) {
 			})
 
 			assertutils.AssertEqualErrors(t, tt.want.err, err)
-			outPath := filepath.Join(tt.fields.outDir, tt.args.path)
 			if tt.want.file {
+				if tt.mockFile {
+					stat, err := os.Stat(outPath)
+					assert.NoError(t, err)
+					currentTimestamp := stat.ModTime().UnixNano()
+
+					if tt.want.overwrite {
+						assert.Greater(t, currentTimestamp, beforeTimestamp)
+					} else {
+						assert.Equal(t, beforeTimestamp, currentTimestamp)
+					}
+				}
+
 				filetestutils.FileExistsWithContent(t, outPath, tt.args.content)
 			} else {
 				filetestutils.PathDoesNotExist(t, outPath)
