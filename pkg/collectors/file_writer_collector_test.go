@@ -264,3 +264,52 @@ func Test_fileWriterCollector_Collect(t *testing.T) {
 		})
 	}
 }
+
+func Test_fileWriterCollector_OnPipelineCompleted(t *testing.T) {
+	tests := []struct {
+		name          string
+		nextError     error
+		expectedError error
+		nextExists    bool
+	}{
+		{
+			name:          "Should return nil when no next collector exists",
+			nextExists:    false,
+			expectedError: nil,
+		},
+		{
+			name:          "Should return nil when next collector returns nil",
+			nextExists:    true,
+			nextError:     nil,
+			expectedError: nil,
+		},
+		{
+			name:          "Should return error when next collector returns error",
+			nextExists:    true,
+			nextError:     errors.New("next-collector-error"),
+			expectedError: errors.New("next-collector-error"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var nextCollector pipeline.Collector
+			if tt.nextExists {
+				nextCollector = &mockCollector{}
+				nextCollector.(*mockCollector).On("OnPipelineCompleted").Return(tt.nextError)
+			}
+
+			p := &fileWriterCollector{
+				baseCollector: baseCollector{
+					next: nextCollector,
+				},
+			}
+
+			err := p.OnPipelineCompleted()
+
+			assertutils.AssertEqualErrors(t, tt.expectedError, err)
+			if tt.nextExists {
+				nextCollector.(*mockCollector).AssertCalled(t, "OnPipelineCompleted")
+			}
+		})
+	}
+}

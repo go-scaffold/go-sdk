@@ -75,3 +75,10 @@ func (p *fileWriterCollector) Collect(args *pipeline.Template) error {
 		Reader: io.NopCloser(bytes.NewReader(contentBytes)),
 	})
 }
+
+func (p *fileWriterCollector) OnPipelineCompleted() error {
+	if p.next == nil {
+		return nil
+	}
+	return p.next.OnPipelineCompleted()
+}

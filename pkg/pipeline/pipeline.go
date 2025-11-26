@@ -33,7 +33,7 @@ func (p *pipeline) Process(processData map[string]interface{}) error {
 		err = p.processNext(processData)
 	}
 	if errors.Is(err, io.EOF) {
-		return nil
+		return p.collector.OnPipelineCompleted()
 	}
 	return err
 }
@@ -44,7 +44,5 @@ func (p *pipeline) processNext(data map[string]interface{}) error {
 		return err
 	}
 
-	err = p.collector.Collect(result)
-
-	return err
+	return p.collector.Collect(result)
 }

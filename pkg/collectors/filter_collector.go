@@ -26,3 +26,10 @@ func (p *filterCollector) Collect(args *pipeline.Template) error {
 	}
 	return nil
 }
+
+func (p *filterCollector) OnPipelineCompleted() error {
+	if p.next == nil {
+		return nil
+	}
+	return p.next.OnPipelineCompleted()
+}

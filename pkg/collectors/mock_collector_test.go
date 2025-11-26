@@ -13,3 +13,8 @@ func (m *mockCollector) Collect(tpl *pipeline.Template) error {
 	args := m.Called(tpl)
 	return args.Error(0)
 }
+
+func (m *mockCollector) OnPipelineCompleted() error {
+	args := m.Called()
+	return args.Error(0)
+}

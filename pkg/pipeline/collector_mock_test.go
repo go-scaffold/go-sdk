@@ -13,3 +13,9 @@ func (m *collectorMock) Collect(args *Template) error {
 	err := res.Error(0)
 	return err
 }
+
+func (m *collectorMock) OnPipelineCompleted() error {
+	res := m.Called()
+	err := res.Error(0)
+	return err
+}

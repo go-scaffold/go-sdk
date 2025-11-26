@@ -20,6 +20,7 @@ func Test_pipeline_Process(t *testing.T) {
 		nextTemplateRes       []*nextTemplateResult
 		collectingErrs        []error
 		dataPreprocessorError error
+		completeError         error
 	}
 	tests := []struct {
 		name    string
@@ -123,6 +124,39 @@ func Test_pipeline_Process(t *testing.T) {
 			wantErr: errors.New("some-unexpected-error"),
 		},
 		{
+			name: "Should propagate error if collector returns one on processing",
+			mocks: mocks{
+				nextTemplateRes: []*nextTemplateResult{
+					{
+						data: &Template{
+							Reader: io.NopCloser(strings.NewReader("")),
+						},
+						err: nil,
+					},
+				},
+				collectingErrs: []error{
+					errors.New("some-collector-error"),
+				},
+			},
+			wantErr: errors.New("some-collector-error"),
+		},
+		{
+			name: "Should propagate error if collector returns one on complete",
+			mocks: mocks{
+				nextTemplateRes: []*nextTemplateResult{
+					{
+						data: nil,
+						err:  io.EOF,
+					},
+				},
+				collectingErrs: []error{
+					nil,
+				},
+				completeError: errors.New("some-complete-error"),
+			},
+			wantErr: errors.New("some-complete-error"),
+		},
+		{
 			name: "Should propagate error if data processor returns one",
 			fields: fields{
 				withDataPreprocessor: true,
@@ -159,12 +193,13 @@ func Test_pipeline_Process(t *testing.T) {
 				}
 			}
 			mockProcessNextTemplate(t, templateProvider, expectedData, functions, tt.mocks.nextTemplateRes)
-			assert.Equal(t, len(tt.mocks.nextTemplateRes), len(tt.mocks.collectingErrs))
+			assert.Len(t, tt.mocks.nextTemplateRes, len(tt.mocks.collectingErrs))
 			for i := 0; i < len(tt.mocks.nextTemplateRes); i++ {
 				if tt.mocks.nextTemplateRes[i].err == nil {
 					collector.On("Collect", tt.mocks.nextTemplateRes[i].data).Return(tt.mocks.collectingErrs[i])
 				}
 			}
+			collector.On("OnPipelineCompleted").Return(tt.mocks.completeError)
 
 			err := p.Process(data)
 
@@ -189,7 +224,7 @@ func mockProcessNextTemplate(t *testing.T, expectedProcessor TemplateProvider, e
 		if len(nextTemplateRes) == 0 {
 			return nil, io.EOF
 		}
-		assert.True(t, count < len(nextTemplateRes))
+		assert.Less(t, count, len(nextTemplateRes))
 		res := nextTemplateRes[count]
 		count++
 		return res.data, res.err
