@@ -7,6 +7,7 @@ import (
 	"testing"
 	"text/template"
 
+	"github.com/go-scaffold/go-sdk/v2/pkg/templates"
 	"github.com/pasdam/go-io-utilx/pkg/ioutilx"
 	"github.com/pasdam/go-utils/pkg/assertutils"
 	"github.com/stretchr/testify/assert"
@@ -51,6 +52,7 @@ func Test_processNextTemplate(t *testing.T) {
 			templateProvider := &templateProviderMock{}
 			data := make(map[string]string)
 			funcMap := make(template.FuncMap)
+			templateAwareFnGen := make(templates.TemplateAwareFuncMap)
 
 			var nextTemplate *Template
 			if tt.mocks.nextTemplateErr == nil {
@@ -60,13 +62,13 @@ func Test_processNextTemplate(t *testing.T) {
 					Path:   tt.wantPath,
 				}
 				templateProvider.On("NextTemplate").Return(nextTemplate, nil)
-				mockProcessTemplate(t, templateReader, data, funcMap, tt.wantContent, tt.mocks.renderTemplateErr)
+				mockProcessTemplate(t, templateReader, data, funcMap, templateAwareFnGen, tt.wantContent, tt.mocks.renderTemplateErr)
 
 			} else {
 				templateProvider.On("NextTemplate").Return(nil, tt.mocks.nextTemplateErr)
 			}
 
-			got, err := processNextTemplate(templateProvider, data, funcMap)
+			got, err := processNextTemplate(templateProvider, data, funcMap, templateAwareFnGen)
 
 			if tt.wantErr == nil {
 				assert.NotNil(t, got)
@@ -81,12 +83,13 @@ func Test_processNextTemplate(t *testing.T) {
 	}
 }
 
-func mockProcessTemplate(t *testing.T, expectedReader io.Reader, expectedData interface{}, expectedFuncMap template.FuncMap, content string, err error) {
+func mockProcessTemplate(t *testing.T, expectedReader io.Reader, expectedData interface{}, expectedFuncMap template.FuncMap, expectedTemplateAwareFnGen templates.TemplateAwareFuncMap, content string, err error) {
 	originalValue := _processTemplate
-	_processTemplate = func(gotReader io.Reader, gotData interface{}, gotFuncMap template.FuncMap) (io.Reader, error) {
+	_processTemplate = func(gotReader io.Reader, gotData interface{}, gotFuncMap template.FuncMap, gotTemplateAwareFnGen templates.TemplateAwareFuncMap) (io.Reader, error) {
 		assert.Equal(t, expectedReader, gotReader)
 		assert.Equal(t, expectedData, gotData)
 		assert.Equal(t, expectedFuncMap, gotFuncMap)
+		assert.Equal(t, expectedTemplateAwareFnGen, gotTemplateAwareFnGen)
 		if err == nil {
 			return strings.NewReader(content), nil
 		}

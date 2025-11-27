@@ -3,6 +3,8 @@ package pipeline
 import (
 	"errors"
 	"text/template"
+
+	"github.com/go-scaffold/go-sdk/v2/pkg/templates"
 )
 
 type PipelineBuilder interface {
@@ -10,6 +12,7 @@ type PipelineBuilder interface {
 	WithCollector(p Collector) *pipelineBuilder
 	WithDataPreprocessor(fn DataPreprocessor) *pipelineBuilder
 	WithFunctions(functions template.FuncMap) *pipelineBuilder
+	WithTemplateAwareFunctions(functions templates.TemplateAwareFuncMap) *pipelineBuilder
 	WithTemplateProvider(p TemplateProvider) *pipelineBuilder
 }
 
@@ -49,6 +52,11 @@ func (b *pipelineBuilder) WithDataPreprocessor(fn DataPreprocessor) *pipelineBui
 
 func (b *pipelineBuilder) WithFunctions(functions template.FuncMap) *pipelineBuilder {
 	b.p.functions = functions
+	return b
+}
+
+func (b *pipelineBuilder) WithTemplateAwareFunctions(functions templates.TemplateAwareFuncMap) *pipelineBuilder {
+	b.p.templateAwareFns = functions
 	return b
 }
 

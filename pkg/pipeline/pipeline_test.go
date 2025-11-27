@@ -7,6 +7,7 @@ import (
 	"testing"
 	"text/template"
 
+	"github.com/go-scaffold/go-sdk/v2/pkg/templates"
 	"github.com/pasdam/go-template-map-loader/pkg/tm"
 	"github.com/pasdam/go-utils/pkg/assertutils"
 	"github.com/stretchr/testify/assert"
@@ -175,10 +176,12 @@ func Test_pipeline_Process(t *testing.T) {
 				"Values":   map[string]interface{}{},
 			}
 			functions := make(template.FuncMap)
+			templateAwareFnGen := make(templates.TemplateAwareFuncMap)
 			collector := &collectorMock{}
 			p := &pipeline{
 				collector:        collector,
 				functions:        functions,
+				templateAwareFns: templateAwareFnGen,
 				templateProvider: templateProvider,
 			}
 			expectedData := data
@@ -192,7 +195,7 @@ func Test_pipeline_Process(t *testing.T) {
 					return expectedData, nil
 				}
 			}
-			mockProcessNextTemplate(t, templateProvider, expectedData, functions, tt.mocks.nextTemplateRes)
+			mockProcessNextTemplate(t, templateProvider, expectedData, functions, templateAwareFnGen, tt.mocks.nextTemplateRes)
 			assert.Len(t, tt.mocks.nextTemplateRes, len(tt.mocks.collectingErrs))
 			for i := 0; i < len(tt.mocks.nextTemplateRes); i++ {
 				if tt.mocks.nextTemplateRes[i].err == nil {
@@ -213,13 +216,14 @@ type nextTemplateResult struct {
 	err  error
 }
 
-func mockProcessNextTemplate(t *testing.T, expectedProcessor TemplateProvider, expectedData interface{}, expectedFuncMap template.FuncMap, nextTemplateRes []*nextTemplateResult) {
+func mockProcessNextTemplate(t *testing.T, expectedProcessor TemplateProvider, expectedData interface{}, expectedFuncMap template.FuncMap, expectedTemplateAwareFnGen templates.TemplateAwareFuncMap, nextTemplateRes []*nextTemplateResult) {
 	originalValue := _processNextTemplate
 	count := 0
-	_processNextTemplate = func(gotProcessor TemplateProvider, gotData interface{}, gotFuncMap template.FuncMap) (*Template, error) {
+	_processNextTemplate = func(gotProcessor TemplateProvider, gotData interface{}, gotFuncMap template.FuncMap, gotTemplateAwareFnGen templates.TemplateAwareFuncMap) (*Template, error) {
 		assert.Equal(t, expectedProcessor, gotProcessor)
 		assert.Equal(t, expectedData, gotData)
 		assert.Equal(t, expectedFuncMap, gotFuncMap)
+		assert.Equal(t, expectedTemplateAwareFnGen, gotTemplateAwareFnGen)
 
 		if len(nextTemplateRes) == 0 {
 			return nil, io.EOF

@@ -6,14 +6,25 @@ import (
 	"text/template"
 )
 
-func applyTemplate(templateContent string, config interface{}, funcMap template.FuncMap) (io.Reader, error) {
-	template, err := template.New("").Funcs(funcMap).Parse(templateContent)
+type TemplateAwareFuncMap map[string]func(*template.Template) any
+
+func applyTemplate(templateContent string, config interface{}, funcMap template.FuncMap, templateAwareFuncGenerators TemplateAwareFuncMap) (io.Reader, error) {
+	tpl := template.New("")
+
+	templateAwareFuncMap := make(template.FuncMap, len(templateAwareFuncGenerators))
+	for fnName, fnGen := range templateAwareFuncGenerators {
+		templateAwareFuncMap[fnName] = fnGen(tpl)
+	}
+
+	tpl = tpl.Funcs(funcMap).Funcs(templateAwareFuncMap)
+
+	tpl, err := tpl.Parse(templateContent)
 	if err != nil {
 		return nil, err
 	}
 
 	var result bytes.Buffer
-	err = template.Execute(&result, config)
+	err = tpl.Execute(&result, config)
 	if err != nil {
 		return nil, err
 	}
