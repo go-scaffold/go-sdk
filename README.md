@@ -15,7 +15,9 @@ Key features:
 - Support for multiple template providers (filesystem, etc.);
 - Multiple collector types for different output strategies;
 - Configurable filtering system;
-- Prefix support for metadata and values.
+- Prefix support for metadata and values;
+- Template-aware functions that can access the template context during
+  processing.
 
 ## Architecture
 
@@ -71,6 +73,7 @@ import (
   "github.com/go-scaffold/go-sdk/v2/pkg/filters"
   "github.com/go-scaffold/go-sdk/v2/pkg/pipeline"
   "github.com/go-scaffold/go-sdk/v2/pkg/templateproviders"
+  "github.com/go-scaffold/go-sdk/v2/pkg/templates"
 )
 
 func main() {
@@ -87,11 +90,24 @@ func main() {
     "upper": strings.ToUpper,
   }
 
+  // Define template-aware functions that have access to the template context
+  templateAwareFuncs := templates.TemplateAwareFuncMap{
+    "include": func(t *template.Template) any {
+      // This function has access to the current template instance
+      return func(templateName string) (string, error) {
+        // Example implementation of an include-like function
+        // that could use the template instance for processing
+        return "", nil
+      }
+    },
+  }
+
   // Build the pipeline
   pipe, err := pipeline.NewPipelineBuilder().
     WithTemplateProvider(templateProvider).
     WithCollector(collector).
     WithFunctions(funcs).
+    WithTemplateAwareFunctions(templateAwareFuncs).
     Build()
   if err != nil {
     panic(err)
@@ -240,6 +256,42 @@ func main() {
   fmt.Printf("Custom loaded data: %+v\n", customData)
 }
 ```
+
+### Template-Aware Functions
+
+Template-aware functions are special functions that have access to the current template context during processing. This enables powerful capabilities like conditional processing based on template properties or creating functions similar to Helm's `include` function.
+
+The template-aware functions are defined as:
+
+```go
+// TemplateAwareFuncMap is a map of functions that receive the template instance
+type TemplateAwareFuncMap map[string]func(*template.Template) any
+```
+
+Here's an example of how to implement a template-aware function:
+
+```go
+// Define template-aware functions that have access to the template context
+templateAwareFuncs := map[string]func(*template.Template) any{
+  "include": func(tmpl *template.Template) any {
+    // This function has access to the current template instance
+    // and can return a function that uses template context
+    return func(templateName string, data ...interface{}) (string, error) {
+      // Implementation would access other templates and process them
+      // using the same function context, similar to Helm's include
+      return "", nil
+    }
+  },
+  "templateName": func(tmpl *template.Template) any {
+    // Return the name of the current template being processed
+    return func() string {
+      return tmpl.Name()
+    }
+  },
+}
+```
+
+These functions can then be used in your templates and have access to the template context, enabling advanced templating capabilities.
 
 ## Development
 
