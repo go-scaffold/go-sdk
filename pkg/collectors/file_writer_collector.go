@@ -11,32 +11,34 @@ import (
 )
 
 type FileWriterCollectorOptions struct {
-	OutDir        string
-	SkipUnchanged bool
+	OutDir           string
+	SkipUnchanged    bool
+	CleanupUntracked bool // Flag to control whether to remove untracked files; defaults to false to maintain current behavior
 }
 
 type fileWriterCollector struct {
 	baseCollector
 
-	opts FileWriterCollectorOptions
+	opts           FileWriterCollectorOptions
+	generatedFiles map[string]bool // Track files generated during pipeline execution
 }
 
 func NewFileWriterCollector(outDir string, nextCollector pipeline.Collector) pipeline.Collector {
-	return &fileWriterCollector{
-		opts: FileWriterCollectorOptions{
-			OutDir:        outDir,
-			SkipUnchanged: false, // Disabled by default
+	return NewFileWriterCollectorWithOpts(
+		FileWriterCollectorOptions{
+			OutDir:           outDir,
+			SkipUnchanged:    false, // Disabled by default
+			CleanupUntracked: false, // Disabled by default to maintain current behavior
 		},
-		baseCollector: baseCollector{
-			next: nextCollector,
-		},
-	}
+		nextCollector,
+	)
 }
 
 // NewFileWriterCollector creates a file writer collector with the provided options
 func NewFileWriterCollectorWithOpts(opts FileWriterCollectorOptions, nextCollector pipeline.Collector) pipeline.Collector {
 	return &fileWriterCollector{
-		opts: opts,
+		opts:           opts,
+		generatedFiles: make(map[string]bool),
 		baseCollector: baseCollector{
 			next: nextCollector,
 		},
@@ -64,6 +66,8 @@ func (p *fileWriterCollector) Collect(args *pipeline.Template) error {
 		if err != nil {
 			return err
 		}
+		// Track the generated file
+		p.generatedFiles[outPath] = true
 	}
 
 	if p.next == nil {
@@ -77,8 +81,45 @@ func (p *fileWriterCollector) Collect(args *pipeline.Template) error {
 }
 
 func (p *fileWriterCollector) OnPipelineCompleted() error {
+	// If cleanup is enabled, remove files that were not generated during pipeline execution
+	if p.opts.CleanupUntracked {
+		err := p.cleanupUntrackedFiles()
+		if err != nil {
+			return err
+		}
+	}
+
 	if p.next == nil {
 		return nil
 	}
 	return p.next.OnPipelineCompleted()
+}
+
+// cleanupUntrackedFiles removes files from the output directory that were not generated during the pipeline execution
+func (p *fileWriterCollector) cleanupUntrackedFiles() error {
+	// Walk through the output directory
+	err := filepath.Walk(p.opts.OutDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			// If there's an error accessing a file, continue processing other files
+			return nil
+		}
+
+		// Skip directories
+		if info.IsDir() {
+			return nil
+		}
+
+		// If the file was not generated during pipeline execution, remove it
+		if !p.generatedFiles[path] {
+			err := os.Remove(path)
+			if err != nil {
+				// Log the error but continue processing other files
+				return nil
+			}
+		}
+
+		return nil
+	})
+
+	return err
 }

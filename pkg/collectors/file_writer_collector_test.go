@@ -220,12 +220,7 @@ func Test_fileWriterCollector_Collect(t *testing.T) {
 				next.(*mockCollector).On("Collect", mock.Anything).Return(tt.want.err)
 				next.(*mockCollector).On("OnPipelineCompleted").Return(nil) // Expect the new method to be called
 			}
-			p := &fileWriterCollector{
-				baseCollector: baseCollector{
-					next: next,
-				},
-				opts: tt.opts,
-			}
+			p := NewFileWriterCollectorWithOpts(tt.opts, next)
 			beforeTimestamp := int64(0)
 			outPath := filepath.Join(tt.opts.OutDir, tt.args.path)
 			if tt.mockFile {
@@ -267,41 +262,104 @@ func Test_fileWriterCollector_Collect(t *testing.T) {
 
 func Test_fileWriterCollector_OnPipelineCompleted(t *testing.T) {
 	tests := []struct {
-		name          string
-		nextError     error
-		expectedError error
-		nextExists    bool
+		name             string
+		nextError        error
+		expectedError    error
+		nextExists       bool
+		cleanupUntracked bool
+		setupFiles       map[string]string // path -> content for files to create before test
+		expectedFiles    []string          // files that should exist after completion
+		unexpectedFiles  []string          // files that should NOT exist after completion
 	}{
 		{
-			name:          "Should return nil when no next collector exists",
-			nextExists:    false,
-			expectedError: nil,
+			name:             "Should return nil when no next collector exists",
+			nextExists:       false,
+			expectedError:    nil,
+			cleanupUntracked: false,
 		},
 		{
-			name:          "Should return nil when next collector returns nil",
-			nextExists:    true,
-			nextError:     nil,
-			expectedError: nil,
+			name:             "Should return nil when next collector returns nil",
+			nextExists:       true,
+			nextError:        nil,
+			expectedError:    nil,
+			cleanupUntracked: false,
 		},
 		{
-			name:          "Should return error when next collector returns error",
-			nextExists:    true,
-			nextError:     errors.New("next-collector-error"),
-			expectedError: errors.New("next-collector-error"),
+			name:             "Should return error when next collector returns error",
+			nextExists:       true,
+			nextError:        errors.New("next-collector-error"),
+			expectedError:    errors.New("next-collector-error"),
+			cleanupUntracked: false,
+		},
+		{
+			name:             "Should not remove untracked files when cleanup is disabled",
+			nextExists:       false,
+			expectedError:    nil,
+			cleanupUntracked: false,
+			setupFiles: map[string]string{
+				"existing-file.txt": "existing content",
+				"tracked-file.txt":  "tracked content",
+			},
+			expectedFiles: []string{"existing-file.txt", "tracked-file.txt"},
+		},
+		{
+			name:             "Should remove untracked files when cleanup is enabled",
+			nextExists:       false,
+			expectedError:    nil,
+			cleanupUntracked: true,
+			setupFiles: map[string]string{
+				"generated-file.txt": "generated content", // This will be tracked in the test
+				"untracked-file.txt": "untracked content", // This should be removed
+			},
+			expectedFiles:   []string{"generated-file.txt"}, // Only the generated file should remain
+			unexpectedFiles: []string{"untracked-file.txt"}, // The untracked file should be removed
+		},
+		{
+			name:             "Should preserve generated files and remove untracked when cleanup is enabled",
+			nextExists:       false,
+			expectedError:    nil,
+			cleanupUntracked: true,
+			setupFiles: map[string]string{
+				"generated1.txt":  "content1",    // This will be tracked
+				"generated2.txt":  "content2",    // This will be tracked
+				"preexisting.txt": "old content", // This was there before and should be removed if not tracked
+			},
+			expectedFiles:   []string{"generated1.txt", "generated2.txt"}, // Only generated files should remain
+			unexpectedFiles: []string{"preexisting.txt"},                  // Pre-existing file should be removed
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// Create temporary output directory
+			tempDir := filetestutils.TempDir(t)
+
+			// Set up initial files if needed
+			for filename, content := range tt.setupFiles {
+				fullPath := filepath.Join(tempDir, filename)
+				err := ioutilx.ReaderToFile(bytes.NewReader([]byte(content)), fullPath)
+				assert.NoError(t, err)
+			}
+
 			var nextCollector pipeline.Collector
 			if tt.nextExists {
 				nextCollector = &mockCollector{}
 				nextCollector.(*mockCollector).On("OnPipelineCompleted").Return(tt.nextError)
 			}
 
-			p := &fileWriterCollector{
-				baseCollector: baseCollector{
-					next: nextCollector,
-				},
+			// Create collector with options that include cleanup setting
+			opts := FileWriterCollectorOptions{
+				OutDir:           tempDir,
+				CleanupUntracked: tt.cleanupUntracked,
+			}
+			p := NewFileWriterCollectorWithOpts(opts, nextCollector).(*fileWriterCollector)
+
+			// Simulate that during pipeline execution, files were generated
+			// (added to generatedFiles map) - for the cleanup test cases
+			if tt.cleanupUntracked {
+				for _, expectedFile := range tt.expectedFiles {
+					fullPath := filepath.Join(tempDir, expectedFile)
+					p.generatedFiles[fullPath] = true
+				}
 			}
 
 			err := p.OnPipelineCompleted()
@@ -309,6 +367,20 @@ func Test_fileWriterCollector_OnPipelineCompleted(t *testing.T) {
 			assertutils.AssertEqualErrors(t, tt.expectedError, err)
 			if tt.nextExists {
 				nextCollector.(*mockCollector).AssertCalled(t, "OnPipelineCompleted")
+			}
+
+			// Verify expected files still exist
+			for _, expectedFile := range tt.expectedFiles {
+				fullPath := filepath.Join(tempDir, expectedFile)
+				_, err := os.Stat(fullPath)
+				assert.False(t, os.IsNotExist(err), "File %s should exist but it doesn't", fullPath)
+			}
+
+			// Verify unexpected files were removed
+			for _, unexpectedFile := range tt.unexpectedFiles {
+				fullPath := filepath.Join(tempDir, unexpectedFile)
+				_, err := os.Stat(fullPath)
+				assert.True(t, os.IsNotExist(err), "File %s should not exist but it does", fullPath)
 			}
 		})
 	}
