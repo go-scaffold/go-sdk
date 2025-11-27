@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"testing"
 	"text/template"
@@ -51,7 +50,7 @@ func Test_ProcessTemplate_success_shouldCreateAReaderForTheGeneratedContent(t *t
 	reader, err := ProcessTemplate(file, struct{ Text string }{Text: "test"}, funcMap)
 
 	assert.Nil(t, err)
-	readContent, err := ioutil.ReadAll(reader)
+	readContent, err := io.ReadAll(reader)
 	assert.Nil(t, err)
 	assert.Equal(t, "This is a *test*\n", string(readContent))
 }

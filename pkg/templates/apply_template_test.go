@@ -2,7 +2,7 @@ package templates
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"testing"
 	"text/template"
 
@@ -36,7 +36,7 @@ func Test_applyTemplate_Success_ShouldCorrectlyGenerateOutputContentFromTemplate
 	result, err := applyTemplate("This is a {{ Bold .CustomProperty }}", data, funcMap)
 
 	assert.Nil(t, err)
-	actualContent, err := ioutil.ReadAll(result)
+	actualContent, err := io.ReadAll(result)
 	assert.NoError(t, err)
 	assert.Equal(t, "This is a *test*", string(actualContent))
 }
