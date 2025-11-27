@@ -110,26 +110,26 @@ func Test_filterCollector_Collect(t *testing.T) {
 
 func Test_filterCollector_OnPipelineCompleted(t *testing.T) {
 	tests := []struct {
-		name       string
-		nextError  error
+		name          string
+		nextError     error
 		expectedError error
-		nextExists bool
+		nextExists    bool
 	}{
 		{
-			name:       "Should return nil when no next collector exists",
-			nextExists: false,
+			name:          "Should return nil when no next collector exists",
+			nextExists:    false,
 			expectedError: nil,
 		},
 		{
-			name:       "Should return nil when next collector returns nil",
-			nextExists: true,
-			nextError:  nil,
+			name:          "Should return nil when next collector returns nil",
+			nextExists:    true,
+			nextError:     nil,
 			expectedError: nil,
 		},
 		{
-			name:       "Should return error when next collector returns error",
-			nextExists: true,
-			nextError:  errors.New("next-collector-error"),
+			name:          "Should return error when next collector returns error",
+			nextExists:    true,
+			nextError:     errors.New("next-collector-error"),
 			expectedError: errors.New("next-collector-error"),
 		},
 	}
