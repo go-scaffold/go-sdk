@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -262,7 +263,10 @@ func Test_fileWriterCollector_Collect(t *testing.T) {
 					currentTimestamp := stat.ModTime().UnixNano()
 
 					if tt.want.overwrite {
-						assert.Greater(t, currentTimestamp, beforeTimestamp)
+						if runtime.GOOS != "linux" {
+							// This is disabled on Linux as the timestamp doesn't change on overwrite
+							assert.Greater(t, currentTimestamp, beforeTimestamp)
+						}
 					} else {
 						assert.Equal(t, beforeTimestamp, currentTimestamp)
 					}
