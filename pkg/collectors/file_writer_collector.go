@@ -3,6 +3,7 @@ package collectors
 import (
 	"bytes"
 	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 
@@ -66,9 +67,9 @@ func (p *fileWriterCollector) Collect(args *pipeline.Template) error {
 		if err != nil {
 			return err
 		}
-		// Track the generated file
-		p.generatedFiles[outPath] = true
 	}
+
+	p.generatedFiles[outPath] = true
 
 	if p.next == nil {
 		return nil
@@ -111,6 +112,7 @@ func (p *fileWriterCollector) cleanupUntrackedFiles() error {
 
 		// If the file was not generated during pipeline execution, remove it
 		if !p.generatedFiles[path] {
+			slog.Info("Removing untracked file", slog.String("path", path))
 			err := os.Remove(path)
 			if err != nil {
 				// Log the error but continue processing other files

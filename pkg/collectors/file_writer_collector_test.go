@@ -100,15 +100,17 @@ func TestNewFileWriterCollectorWithOpts(t *testing.T) {
 }
 
 func Test_fileWriterCollector_Collect(t *testing.T) {
+	tempDir := filetestutils.TempDir(t)
 	type args struct {
 		path    string
 		content string
 	}
 	type want struct {
-		err       error
-		file      bool
-		next      bool
-		overwrite bool
+		err            error
+		file           bool
+		next           bool
+		overwrite      bool
+		generatedFiles map[string]bool
 	}
 	tests := []struct {
 		name     string
@@ -120,7 +122,7 @@ func Test_fileWriterCollector_Collect(t *testing.T) {
 		{
 			name: "should return no error if file is wrote correctly and no next collector is specified",
 			opts: FileWriterCollectorOptions{
-				OutDir: filetestutils.TempDir(t),
+				OutDir: filepath.Join(tempDir, "success1"),
 			},
 			args: args{
 				path:    "some-correct-path",
@@ -130,12 +132,15 @@ func Test_fileWriterCollector_Collect(t *testing.T) {
 				err:  nil,
 				file: true,
 				next: false,
+				generatedFiles: map[string]bool{
+					filepath.Join(tempDir, "success1", "some-correct-path"): true,
+				},
 			},
 		},
 		{
 			name: "should overwrite file if SkipUnchanged is false",
 			opts: FileWriterCollectorOptions{
-				OutDir: filetestutils.TempDir(t),
+				OutDir: filepath.Join(tempDir, "success2"),
 			},
 			args: args{
 				path:    "some-correct-path",
@@ -147,12 +152,15 @@ func Test_fileWriterCollector_Collect(t *testing.T) {
 				file:      true,
 				next:      false,
 				overwrite: true,
+				generatedFiles: map[string]bool{
+					filepath.Join(tempDir, "success2", "some-correct-path"): true,
+				},
 			},
 		},
 		{
-			name: "should overwrite file if SkipUnchanged is true",
+			name: "should not overwrite file if SkipUnchanged is true",
 			opts: FileWriterCollectorOptions{
-				OutDir:        filetestutils.TempDir(t),
+				OutDir:        filepath.Join(tempDir, "success3"),
 				SkipUnchanged: true,
 			},
 			args: args{
@@ -165,12 +173,15 @@ func Test_fileWriterCollector_Collect(t *testing.T) {
 				file:      true,
 				next:      false,
 				overwrite: false,
+				generatedFiles: map[string]bool{
+					filepath.Join(tempDir, "success3", "some-correct-path"): true,
+				},
 			},
 		},
 		{
 			name: "should return no error if file is wrote correctly and next collector is invoked correctly",
 			opts: FileWriterCollectorOptions{
-				OutDir: filetestutils.TempDir(t),
+				OutDir: filepath.Join(tempDir, "success4"),
 			},
 			args: args{
 				path:    "some-correct-path",
@@ -180,12 +191,15 @@ func Test_fileWriterCollector_Collect(t *testing.T) {
 				err:  nil,
 				file: true,
 				next: true,
+				generatedFiles: map[string]bool{
+					filepath.Join(tempDir, "success4", "some-correct-path"): true,
+				},
 			},
 		},
 		{
 			name: "should propagate error if file is wrote correctly but next collector raises one",
 			opts: FileWriterCollectorOptions{
-				OutDir: filetestutils.TempDir(t),
+				OutDir: filepath.Join(tempDir, "error1"),
 			},
 			args: args{
 				path:    "some-correct-path",
@@ -195,6 +209,9 @@ func Test_fileWriterCollector_Collect(t *testing.T) {
 				err:  nil,
 				file: true,
 				next: true,
+				generatedFiles: map[string]bool{
+					filepath.Join(tempDir, "error1", "some-correct-path"): true,
+				},
 			},
 		},
 		{
@@ -207,8 +224,9 @@ func Test_fileWriterCollector_Collect(t *testing.T) {
 				content: "some-content",
 			},
 			want: want{
-				err:  errors.New("mkdir testdata/out/.gitignore: not a directory"),
-				file: false,
+				err:            errors.New("mkdir testdata/out/.gitignore: not a directory"),
+				file:           false,
+				generatedFiles: map[string]bool{},
 			},
 		},
 	}
@@ -220,7 +238,7 @@ func Test_fileWriterCollector_Collect(t *testing.T) {
 				next.(*mockCollector).On("Collect", mock.Anything).Return(tt.want.err)
 				next.(*mockCollector).On("OnPipelineCompleted").Return(nil) // Expect the new method to be called
 			}
-			p := NewFileWriterCollectorWithOpts(tt.opts, next)
+			p := NewFileWriterCollectorWithOpts(tt.opts, next).(*fileWriterCollector)
 			beforeTimestamp := int64(0)
 			outPath := filepath.Join(tt.opts.OutDir, tt.args.path)
 			if tt.mockFile {
@@ -235,6 +253,7 @@ func Test_fileWriterCollector_Collect(t *testing.T) {
 				Reader: io.NopCloser(strings.NewReader(tt.args.content)),
 			})
 
+			assert.Equal(t, tt.want.generatedFiles, p.generatedFiles)
 			assertutils.AssertEqualErrors(t, tt.want.err, err)
 			if tt.want.file {
 				if tt.mockFile {
@@ -326,6 +345,19 @@ func Test_fileWriterCollector_OnPipelineCompleted(t *testing.T) {
 			},
 			expectedFiles:   []string{"generated1.txt", "generated2.txt"}, // Only generated files should remain
 			unexpectedFiles: []string{"preexisting.txt"},                  // Pre-existing file should be removed
+		},
+		{
+			name:             "Should preserve generated files and remove untracked in subfolder when cleanup is enabled",
+			nextExists:       false,
+			expectedError:    nil,
+			cleanupUntracked: true,
+			setupFiles: map[string]string{
+				"subfolder/generated1.txt":  "content1",    // This will be tracked
+				"subfolder/generated2.txt":  "content2",    // This will be tracked
+				"subfolder/preexisting.txt": "old content", // This was there before and should be removed if not tracked
+			},
+			expectedFiles:   []string{"subfolder/generated1.txt", "subfolder/generated2.txt"}, // Only generated files should remain
+			unexpectedFiles: []string{"subfolder/preexisting.txt"},                            // Pre-existing file should be removed
 		},
 	}
 	for _, tt := range tests {
