@@ -16,25 +16,25 @@ type Pipeline interface {
 }
 
 type pipeline struct {
-	dataPreprocessor        DataPreprocessor
-	functions               template.FuncMap
-	templateAwareFns        templates.TemplateAwareFuncMap
-	collector               Collector
-	templateProvider        TemplateProvider
-	sharedTemplatesProvider TemplateProvider
+	dataPreprocessor       DataPreprocessor
+	functions              template.FuncMap
+	templateAwareFns       templates.TemplateAwareFuncMap
+	collector              Collector
+	templateProvider       TemplateProvider
+	namedTemplatesProvider TemplateProvider
 }
 
 // loadCommonTemplates loads all common templates into a base template that can be
 // reused across all main templates in the pipeline.
 func (p *pipeline) loadCommonTemplates() (*template.Template, error) {
-	if p.sharedTemplatesProvider == nil {
+	if p.namedTemplatesProvider == nil {
 		return nil, nil
 	}
 
 	baseTemplate := template.New("").Funcs(p.functions)
 
 	for {
-		commonTemplate, err := p.sharedTemplatesProvider.NextTemplate()
+		commonTemplate, err := p.namedTemplatesProvider.NextTemplate()
 		if errors.Is(err, io.EOF) {
 			break
 		}

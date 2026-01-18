@@ -13,13 +13,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_pipeline_loadSharedTemplates(t *testing.T) {
+func Test_pipeline_loadNamedTemplates(t *testing.T) {
 	tests := []struct {
-		name                 string
-		sharedTemplatesSetup func(*templateProviderMock)
-		wantErr              error
-		wantTemplateNames    []string
-		withProvider         bool
+		name                string
+		namedTemplatesSetup func(*templateProviderMock)
+		wantErr             error
+		wantTemplateNames   []string
+		withProvider        bool
 	}{
 		{
 			name:         "Should return nil if no common templates provider is set",
@@ -29,7 +29,7 @@ func Test_pipeline_loadSharedTemplates(t *testing.T) {
 		{
 			name:         "Should return empty base template if provider returns EOF immediately",
 			withProvider: true,
-			sharedTemplatesSetup: func(m *templateProviderMock) {
+			namedTemplatesSetup: func(m *templateProviderMock) {
 				m.On("NextTemplate").Return(nil, io.EOF)
 			},
 			wantErr: nil,
@@ -37,7 +37,7 @@ func Test_pipeline_loadSharedTemplates(t *testing.T) {
 		{
 			name:         "Should load single common template successfully",
 			withProvider: true,
-			sharedTemplatesSetup: func(m *templateProviderMock) {
+			namedTemplatesSetup: func(m *templateProviderMock) {
 				m.On("NextTemplate").Return(&Template{
 					Name:   "header",
 					Reader: io.NopCloser(strings.NewReader("{{ define \"header\" }}HEADER{{ end }}")),
@@ -50,7 +50,7 @@ func Test_pipeline_loadSharedTemplates(t *testing.T) {
 		{
 			name:         "Should load multiple common templates successfully",
 			withProvider: true,
-			sharedTemplatesSetup: func(m *templateProviderMock) {
+			namedTemplatesSetup: func(m *templateProviderMock) {
 				m.On("NextTemplate").Return(&Template{
 					Name:   "header",
 					Reader: io.NopCloser(strings.NewReader("{{ define \"header\" }}HEADER{{ end }}")),
@@ -67,7 +67,7 @@ func Test_pipeline_loadSharedTemplates(t *testing.T) {
 		{
 			name:         "Should propagate error if common templates provider returns one",
 			withProvider: true,
-			sharedTemplatesSetup: func(m *templateProviderMock) {
+			namedTemplatesSetup: func(m *templateProviderMock) {
 				m.On("NextTemplate").Return(nil, errors.New("some-provider-error"))
 			},
 			wantErr: errors.New("some-provider-error"),
@@ -75,7 +75,7 @@ func Test_pipeline_loadSharedTemplates(t *testing.T) {
 		{
 			name:         "Should propagate error if template parsing fails",
 			withProvider: true,
-			sharedTemplatesSetup: func(m *templateProviderMock) {
+			namedTemplatesSetup: func(m *templateProviderMock) {
 				m.On("NextTemplate").Return(&Template{
 					Name:   "invalid",
 					Reader: io.NopCloser(strings.NewReader("{{ invalid template syntax")),
@@ -94,10 +94,10 @@ func Test_pipeline_loadSharedTemplates(t *testing.T) {
 
 			if tt.withProvider {
 				commonProvider := &templateProviderMock{}
-				if tt.sharedTemplatesSetup != nil {
-					tt.sharedTemplatesSetup(commonProvider)
+				if tt.namedTemplatesSetup != nil {
+					tt.namedTemplatesSetup(commonProvider)
 				}
-				p.sharedTemplatesProvider = commonProvider
+				p.namedTemplatesProvider = commonProvider
 			}
 
 			got, err := p.loadCommonTemplates()
