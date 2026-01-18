@@ -69,6 +69,15 @@ func Test_builder_Build(t *testing.T) {
 				collector:        &collectorMock{},
 			},
 		},
+		{
+			name: "Should create pipeline with common templates provider",
+			pipeline: pipeline{
+				functions:               funcMap,
+				templateProvider:        &templateProviderMock{},
+				collector:               &collectorMock{},
+				sharedTemplatesProvider: &templateProviderMock{},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -78,7 +87,8 @@ func Test_builder_Build(t *testing.T) {
 				WithDataPreprocessor(tt.pipeline.dataPreprocessor).
 				WithFunctions(tt.pipeline.functions).
 				WithTemplateProvider(tt.pipeline.templateProvider).
-				WithCollector(tt.pipeline.collector)
+				WithCollector(tt.pipeline.collector).
+				WithSharedTemplatesProvider(tt.pipeline.sharedTemplatesProvider)
 
 			expectedPipeline := tt.pipeline
 

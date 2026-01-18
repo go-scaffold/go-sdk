@@ -3,6 +3,7 @@ package pipeline
 import (
 	"errors"
 	"io"
+	"log/slog"
 	"text/template"
 
 	"github.com/go-scaffold/go-sdk/v2/pkg/templates"
@@ -15,11 +16,47 @@ type Pipeline interface {
 }
 
 type pipeline struct {
-	dataPreprocessor DataPreprocessor
-	functions        template.FuncMap
-	templateAwareFns templates.TemplateAwareFuncMap
-	collector        Collector
-	templateProvider TemplateProvider
+	dataPreprocessor        DataPreprocessor
+	functions               template.FuncMap
+	templateAwareFns        templates.TemplateAwareFuncMap
+	collector               Collector
+	templateProvider        TemplateProvider
+	sharedTemplatesProvider TemplateProvider
+}
+
+// loadCommonTemplates loads all common templates into a base template that can be
+// reused across all main templates in the pipeline.
+func (p *pipeline) loadCommonTemplates() (*template.Template, error) {
+	if p.sharedTemplatesProvider == nil {
+		return nil, nil
+	}
+
+	baseTemplate := template.New("").Funcs(p.functions)
+
+	for {
+		commonTemplate, err := p.sharedTemplatesProvider.NextTemplate()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+
+		slog.Info("Loading common template", slog.String("name", commonTemplate.Name))
+
+		content, err := io.ReadAll(commonTemplate.Reader)
+		commonTemplate.Reader.Close()
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = baseTemplate.New(commonTemplate.Name).Parse(string(content))
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return baseTemplate, nil
 }
 
 func (p *pipeline) Process(processData map[string]interface{}) error {
@@ -32,8 +69,14 @@ func (p *pipeline) Process(processData map[string]interface{}) error {
 		}
 	}
 
+	// Load common templates once before processing main templates
+	baseTemplate, err := p.loadCommonTemplates()
+	if err != nil {
+		return err
+	}
+
 	for err == nil {
-		err = p.processNext(processData)
+		err = p.processNext(processData, baseTemplate)
 	}
 	if errors.Is(err, io.EOF) {
 		return p.collector.OnPipelineCompleted()
@@ -41,8 +84,8 @@ func (p *pipeline) Process(processData map[string]interface{}) error {
 	return err
 }
 
-func (p *pipeline) processNext(data map[string]interface{}) error {
-	result, err := _processNextTemplate(p.templateProvider, data, p.functions, p.templateAwareFns)
+func (p *pipeline) processNext(data map[string]interface{}, baseTemplate *template.Template) error {
+	result, err := _processNextTemplate(p.templateProvider, data, p.functions, p.templateAwareFns, baseTemplate)
 	if err != nil {
 		return err
 	}

@@ -12,6 +12,7 @@ type PipelineBuilder interface {
 	WithCollector(p Collector) *pipelineBuilder
 	WithDataPreprocessor(fn DataPreprocessor) *pipelineBuilder
 	WithFunctions(functions template.FuncMap) *pipelineBuilder
+	WithSharedTemplatesProvider(p TemplateProvider) *pipelineBuilder
 	WithTemplateAwareFunctions(functions templates.TemplateAwareFuncMap) *pipelineBuilder
 	WithTemplateProvider(p TemplateProvider) *pipelineBuilder
 }
@@ -52,6 +53,11 @@ func (b *pipelineBuilder) WithDataPreprocessor(fn DataPreprocessor) *pipelineBui
 
 func (b *pipelineBuilder) WithFunctions(functions template.FuncMap) *pipelineBuilder {
 	b.p.functions = functions
+	return b
+}
+
+func (b *pipelineBuilder) WithSharedTemplatesProvider(p TemplateProvider) *pipelineBuilder {
+	b.p.sharedTemplatesProvider = p
 	return b
 }
 

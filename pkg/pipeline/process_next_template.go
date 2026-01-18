@@ -8,9 +8,9 @@ import (
 	"github.com/go-scaffold/go-sdk/v2/pkg/templates"
 )
 
-var _processTemplate = templates.ProcessTemplateWithTemplateAware
+var _processTemplate = templates.ProcessTemplateWithBaseTemplate
 
-func processNextTemplate(templateProvider TemplateProvider, data interface{}, funcMap template.FuncMap, templateAwareFnGen templates.TemplateAwareFuncMap) (*Template, error) {
+func processNextTemplate(templateProvider TemplateProvider, data interface{}, funcMap template.FuncMap, templateAwareFnGen templates.TemplateAwareFuncMap, baseTemplate *template.Template) (*Template, error) {
 	template, err := templateProvider.NextTemplate()
 	if err != nil {
 		return nil, err
@@ -21,7 +21,7 @@ func processNextTemplate(templateProvider TemplateProvider, data interface{}, fu
 	templateReader := template.Reader
 	defer templateReader.Close()
 
-	resultReader, err := _processTemplate(templateReader, data, funcMap, templateAwareFnGen)
+	resultReader, err := _processTemplate(templateReader, data, funcMap, templateAwareFnGen, baseTemplate)
 	if err != nil {
 		return nil, err
 	}

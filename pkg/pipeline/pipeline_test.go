@@ -13,6 +13,114 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func Test_pipeline_loadSharedTemplates(t *testing.T) {
+	tests := []struct {
+		name                 string
+		sharedTemplatesSetup func(*templateProviderMock)
+		wantErr              error
+		wantTemplateNames    []string
+		withProvider         bool
+	}{
+		{
+			name:         "Should return nil if no common templates provider is set",
+			withProvider: false,
+			wantErr:      nil,
+		},
+		{
+			name:         "Should return empty base template if provider returns EOF immediately",
+			withProvider: true,
+			sharedTemplatesSetup: func(m *templateProviderMock) {
+				m.On("NextTemplate").Return(nil, io.EOF)
+			},
+			wantErr: nil,
+		},
+		{
+			name:         "Should load single common template successfully",
+			withProvider: true,
+			sharedTemplatesSetup: func(m *templateProviderMock) {
+				m.On("NextTemplate").Return(&Template{
+					Name:   "header",
+					Reader: io.NopCloser(strings.NewReader("{{ define \"header\" }}HEADER{{ end }}")),
+				}, nil).Once()
+				m.On("NextTemplate").Return(nil, io.EOF)
+			},
+			wantErr:           nil,
+			wantTemplateNames: []string{"header"},
+		},
+		{
+			name:         "Should load multiple common templates successfully",
+			withProvider: true,
+			sharedTemplatesSetup: func(m *templateProviderMock) {
+				m.On("NextTemplate").Return(&Template{
+					Name:   "header",
+					Reader: io.NopCloser(strings.NewReader("{{ define \"header\" }}HEADER{{ end }}")),
+				}, nil).Once()
+				m.On("NextTemplate").Return(&Template{
+					Name:   "footer",
+					Reader: io.NopCloser(strings.NewReader("{{ define \"footer\" }}FOOTER{{ end }}")),
+				}, nil).Once()
+				m.On("NextTemplate").Return(nil, io.EOF)
+			},
+			wantErr:           nil,
+			wantTemplateNames: []string{"header", "footer"},
+		},
+		{
+			name:         "Should propagate error if common templates provider returns one",
+			withProvider: true,
+			sharedTemplatesSetup: func(m *templateProviderMock) {
+				m.On("NextTemplate").Return(nil, errors.New("some-provider-error"))
+			},
+			wantErr: errors.New("some-provider-error"),
+		},
+		{
+			name:         "Should propagate error if template parsing fails",
+			withProvider: true,
+			sharedTemplatesSetup: func(m *templateProviderMock) {
+				m.On("NextTemplate").Return(&Template{
+					Name:   "invalid",
+					Reader: io.NopCloser(strings.NewReader("{{ invalid template syntax")),
+				}, nil).Once()
+			},
+			wantErr: errors.New("template: invalid:1: function \"invalid\" not defined"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			funcMap := make(template.FuncMap)
+			funcMap["dummy"] = func() string { return "" }
+			p := &pipeline{
+				functions: funcMap,
+			}
+
+			if tt.withProvider {
+				commonProvider := &templateProviderMock{}
+				if tt.sharedTemplatesSetup != nil {
+					tt.sharedTemplatesSetup(commonProvider)
+				}
+				p.sharedTemplatesProvider = commonProvider
+			}
+
+			got, err := p.loadCommonTemplates()
+
+			if tt.wantErr != nil {
+				assert.NotNil(t, err)
+				assert.Contains(t, err.Error(), tt.wantErr.Error())
+				assert.Nil(t, got)
+			} else {
+				assert.Nil(t, err)
+				if !tt.withProvider {
+					assert.Nil(t, got)
+				} else {
+					assert.NotNil(t, got)
+					for _, name := range tt.wantTemplateNames {
+						assert.NotNil(t, got.Lookup(name), "Template %s should exist", name)
+					}
+				}
+			}
+		})
+	}
+}
+
 func Test_pipeline_Process(t *testing.T) {
 	type fields struct {
 		withDataPreprocessor bool
@@ -219,7 +327,7 @@ type nextTemplateResult struct {
 func mockProcessNextTemplate(t *testing.T, expectedProcessor TemplateProvider, expectedData interface{}, expectedFuncMap template.FuncMap, expectedTemplateAwareFnGen templates.TemplateAwareFuncMap, nextTemplateRes []*nextTemplateResult) {
 	originalValue := _processNextTemplate
 	count := 0
-	_processNextTemplate = func(gotProcessor TemplateProvider, gotData interface{}, gotFuncMap template.FuncMap, gotTemplateAwareFnGen templates.TemplateAwareFuncMap) (*Template, error) {
+	_processNextTemplate = func(gotProcessor TemplateProvider, gotData interface{}, gotFuncMap template.FuncMap, gotTemplateAwareFnGen templates.TemplateAwareFuncMap, gotBaseTemplate *template.Template) (*Template, error) {
 		assert.Equal(t, expectedProcessor, gotProcessor)
 		assert.Equal(t, expectedData, gotData)
 		assert.Equal(t, expectedFuncMap, gotFuncMap)
