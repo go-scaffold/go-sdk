@@ -7,10 +7,13 @@ replace github.com/go-scaffold/go-sdk/v2/pkg => ./pkg
 require (
 	github.com/pasdam/go-template-map-loader v0.0.0-20251027152818-839d0eaea9e2
 	github.com/pasdam/go-utils v0.1.0
-	github.com/stretchr/testify v1.12.0
+	github.com/stretchr/testify v1.12.1
 )
 
-require github.com/kr/text v0.2.0 // indirect
+require (
+	github.com/kr/text v0.2.0 // indirect
+	go.yaml.in/yaml/v3 v3.0.5 // indirect
+)
 
 require (
 	github.com/pasdam/files-index v0.0.0-20251027145827-bf1f76a08090
